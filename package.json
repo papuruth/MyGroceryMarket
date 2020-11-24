@@ -46,7 +46,7 @@
     "i18n-js": "^3.2.1",
     "jetifier": "^1.6.5",
     "lodash": "^4.17.13",
-    "metro-config": "^0.59.0",
+    "metro-config": "^0.63.0",
     "moment": "^2.24.0",
     "moment-with-locales-es6": "^1.0.1",
     "prop-types": "^15.7.2",
