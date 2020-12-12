@@ -30,6 +30,7 @@ const COLORS = {
   LIGHTERGRAY: '#dbdbdb',
   ALMOSTWHITE: '#f0f0f0',
   ERROR: '#f21818',
+  SUCCESS: '#4BB543',
 };
 
 export default COLORS;

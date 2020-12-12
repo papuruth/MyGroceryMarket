@@ -1,14 +1,19 @@
-apply plugin: "com.android.application"
+apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 
 import com.android.build.OutputFile
 
 project.ext.react = [
-    entryFile: "index.js",
+    entryFile: 'index.js',
     enableHermes: true,
 ]
+project.ext.envConfigFiles = [
+        debug: '.env',
+        release: '.env.production',
+]
 
-apply from: "../../node_modules/react-native/react.gradle"
+apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
+apply from: '../../node_modules/react-native/react.gradle'
 
 /**
  * Set this to true to create two separate APKs instead of one:
@@ -18,12 +23,12 @@ apply from: "../../node_modules/react-native/react.gradle"
  * Upload all the APKs to the Play Store and people will download
  * the correct one based on the CPU architecture of their device.
  */
-def enableSeparateBuildPerCPUArchitecture = false
+Boolean enableSeparateBuildPerCPUArchitecture = false
 
 /**
  * Run Proguard to shrink the Java bytecode in release builds.
  */
-def enableProguardInReleaseBuilds = false
+Boolean enableProguardInReleaseBuilds = false
 
 /**
  * The preferred build flavor of JavaScriptCore.
@@ -44,7 +49,7 @@ def jscFlavor = 'org.webkit:android-jsc:+'
  * on project.ext.react, JavaScript will not be compiled to Hermes Bytecode
  * and the benefits of using Hermes will therefore be sharply reduced.
  */
-def enableHermes = project.ext.react.get("enableHermes", true);
+def enableHermes = project.ext.react.get('enableHermes', true)
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -54,11 +59,11 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.pariso.android.mygroceryshop"
+        applicationId 'com.pariso.android.mygroceryshop'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 8
+        versionName "1.0.0"
         missingDimensionStrategy 'react-native-camera', 'general'
         multiDexEnabled true
 
@@ -72,9 +77,9 @@ android {
         }
         release {
           storeFile file('release.keystore')
-          storePassword 'pariso'
-          keyAlias 'pariso'
-          keyPassword 'pariso'
+          storePassword 'mygroceryshop@1996'
+          keyAlias 'mygroceryshoprelease'
+          keyPassword 'mygroceryshop@1996'
         }
     }
     splits {
@@ -82,7 +87,7 @@ android {
             reset()
             enable enableSeparateBuildPerCPUArchitecture
             universalApk false  // If true, also generate a universal APK
-            include "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
+            include 'armeabi-v7a', 'x86', 'arm64-v8a', 'x86_64'
         }
     }
     buildTypes {
@@ -94,7 +99,7 @@ android {
             // see https://facebook.github.io/react-native/docs/signed-apk-android.
             signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
     // applicationVariants are e.g. debug, release
@@ -102,7 +107,7 @@ android {
         variant.outputs.each { output ->
             // For each separate APK per architecture, set a unique version code as described here:
             // https://developer.android.com/studio/build/configure-apk-splits.html
-            def versionCodes = ["armeabi-v7a": 1, "x86": 2, "arm64-v8a": 3, "x86_64": 4]
+            def versionCodes = ['armeabi-v7a': 1, 'x86': 2, 'arm64-v8a': 3, 'x86_64': 4]
             def abi = output.getFilter(OutputFile.ABI)
             if (abi != null) {  // null for the universal-debug, universal-release variants
                 output.versionCodeOverride =
@@ -113,15 +118,15 @@ android {
 }
 
 dependencies {
-  implementation "com.facebook.react:react-native:+"
+  implementation 'com.facebook.react:react-native:+'
   implementation 'androidx.appcompat:appcompat:1.2.0'
   implementation 'androidx.constraintlayout:constraintlayout:2.0.0'// From node_modules
-    def multidex_version = "2.0.1"
+    def multidex_version = '2.0.1'
     implementation "androidx.multidex:multidex:$multidex_version"
     if (enableHermes) {
-        def hermesPath = "../../node_modules/hermes-engine/android/";
-        debugImplementation files(hermesPath + "hermes-debug.aar")
-        releaseImplementation files(hermesPath + "hermes-release.aar")
+        def hermesPath = '../../node_modules/hermes-engine/android/'
+        debugImplementation files(hermesPath + 'hermes-debug.aar')
+        releaseImplementation files(hermesPath + 'hermes-release.aar')
     } else {
         implementation jscFlavor
     }
@@ -134,4 +139,4 @@ task copyDownloadableDepsToLibs(type: Copy) {
     into 'libs'
 }
 
-apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+apply from: file('../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle'); applyNativeModulesAppBuildGradle(project)

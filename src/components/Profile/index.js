@@ -70,12 +70,14 @@ export default class Profile extends React.PureComponent {
               />
             </View>
           </ScrollView>
-          <EditProfile
-            visible={showEditProfile}
-            section={section}
-            data={user}
-            closeEditProfileHandler={this.closeEditProfileHandler}
-          />
+          {showEditProfile ? (
+            <EditProfile
+              visible={showEditProfile}
+              section={section}
+              data={user}
+              closeEditProfileHandler={this.closeEditProfileHandler}
+            />
+          ) : null}
         </SafeAreaView>
       </ImageBackground>
     );

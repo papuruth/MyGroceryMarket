@@ -1,0 +1,32 @@
+
+platform :android do
+  desc "Submit a new build to Google Play Console"
+
+  lane :release do
+    api_environment = "production"
+    ENV["ENVFILE"]=".env.#{api_environment}"
+
+    puts "API_HOST: #{ENV['API_HOST']}"
+    puts "ENVFILE: #{ENV['ENVFILE']}"
+
+    gradle_file = "./android/app/build.gradle"
+
+    android_set_version_name(
+      version_name: "1.0.0",
+      gradle_file: gradle_file
+    )
+
+    android_set_version_code(
+      gradle_file: gradle_file
+    )
+    gradle(
+      project_dir: './android',
+      task: "clean"
+    )
+    gradle(
+      project_dir: './android',
+      task: 'assemble',
+      build_type: 'release'
+    )
+  end
+end

@@ -1,8 +1,8 @@
+import TextInput from '@/utils/reusableComponents/TextInput';
+import PropTypes from 'prop-types';
 import React from 'react';
 import { View } from 'react-native';
-import PropTypes from 'prop-types';
-import { RadioButton, TextInput } from 'react-native-paper';
-import { Caption, Text } from '../../../utils/reusableComponents/StyledText';
+import { Caption, RadioButton, Text } from 'react-native-paper';
 import { styles } from '../styles';
 
 export const RenderAddressEditForm = ({
@@ -35,7 +35,7 @@ export const RenderAddressEditForm = ({
         mode="outlined"
         value={city}
         onSubmitEditing={() => postalInputRef.focus()}
-        ref={(cityRef) => {
+        inputRef={(cityRef) => {
           cityInputRef = cityRef;
         }}
         blurOnSubmit={false}
@@ -48,7 +48,7 @@ export const RenderAddressEditForm = ({
         keyboardType="number-pad"
         value={postalCode}
         onSubmitEditing={() => stateInputRef.focus()}
-        ref={(postalRef) => {
+        inputRef={(postalRef) => {
           postalInputRef = postalRef;
         }}
         blurOnSubmit={false}
@@ -60,7 +60,7 @@ export const RenderAddressEditForm = ({
         mode="outlined"
         value={state}
         onSubmitEditing={() => streetInputRef.focus()}
-        ref={(stateRef) => {
+        inputRef={(stateRef) => {
           stateInputRef = stateRef;
         }}
         blurOnSubmit={false}
@@ -70,9 +70,10 @@ export const RenderAddressEditForm = ({
         style={styles.inputFields}
         label="Street"
         mode="outlined"
-        ref={(streetRef) => {
+        inputRef={(streetRef) => {
           streetInputRef = streetRef;
         }}
+        onSubmitEditing={() => streetInputRef.blur()}
         value={street}
         onChangeText={(text) => onChange('street', text)}
       />

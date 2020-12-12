@@ -1,6 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 import { checkEmpty } from '@/utils/commonFunctions';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
@@ -53,7 +54,6 @@ export default class EditProfile extends Component {
       transferred: 0,
     });
     try {
-      console.log(image, fileName);
       const task = storage()
         .ref(fileName)
         .putFile(image);
@@ -85,7 +85,7 @@ export default class EditProfile extends Component {
   saveProfile = async () => {
     const { section } = this.props;
     try {
-      const { displayName, phoneNumber, photoURL, rawImage } = this.state;
+      const { displayName, phoneNumber, rawImage, photoURL } = this.state;
       if (section === 'Basic Details') {
         let imgUrl;
         if (rawImage) {
@@ -99,9 +99,12 @@ export default class EditProfile extends Component {
         if (!checkEmpty(user) && !checkEmpty(user._user)) {
           await sessionService.saveSession(user._user);
           await sessionService.saveUser(user._user);
+          await firestore()
+            .collection('users')
+            .doc(user?._user.uid)
+            .update({ ...user?._user });
         }
         Alert.alert('Success', 'Basic details updated successfully!');
-        this.hideDialog();
         this.resetState();
       }
     } catch (e) {
@@ -111,11 +114,14 @@ export default class EditProfile extends Component {
   };
 
   resetState = () => {
-    this.setState({
-      displayName: null,
-      photoURL: null,
-      rawImage: null,
-    });
+    this.setState(
+      {
+        displayName: null,
+        photoURL: null,
+        rawImage: null,
+      },
+      this.hideDialog,
+    );
   };
 
   setSelectedPhotos = (res, type) => {
@@ -133,12 +139,12 @@ export default class EditProfile extends Component {
   };
 
   render() {
-    const { visible, section } = this.props;
+    const { section } = this.props;
     const { displayName, photoURL, uploading, transferred } = this.state;
     return (
       <SafeAreaView>
         <Portal>
-          <Dialog visible={visible} dismissable={false}>
+          <Dialog visible dismissable={false}>
             <Dialog.Title>{`Edit ${section}`}</Dialog.Title>
             <Dialog.Content>
               {section === 'Basic Details' && (
@@ -178,5 +184,4 @@ EditProfile.propTypes = {
   data: PropTypes.oneOfType([PropTypes.object]).isRequired,
   closeEditProfileHandler: PropTypes.func.isRequired,
   section: PropTypes.string.isRequired,
-  visible: PropTypes.bool.isRequired,
 };

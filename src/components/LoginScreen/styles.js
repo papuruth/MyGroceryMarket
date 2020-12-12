@@ -4,17 +4,25 @@ import styled from 'styled-components/native';
 
 export const StyledContainer = styled.ImageBackground`
   align-items: center;
-  background-color: ${colors.white};
   width: 100%;
-  flex: 1;
   height: 100%;
-  padding-top: 0;
 `;
+
+export const ScrollContainer = styled.ScrollView``;
 
 export const StyledTitle = styled.Text`
   color: ${(props) => props.color || colors.black};
   font-size: ${(props) => props.fontSize || 24}px;
   text-decoration: ${(props) => (props.decoration ? props.decoration : 'none')};
+`;
+
+export const LoginFormContainer = styled.View`
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 20px;
 `;
 
 export const AuthLogoView = styled.View`
@@ -27,9 +35,7 @@ export const AuthLogo = styled.Image`
 `;
 
 export const AuthFormView = styled.View`
-  padding: 20px;
-  flex: 1;
-  margin-top: 50px;
+  padding: 50px 20px;
   width: 100%;
 `;
 
@@ -37,11 +43,15 @@ export const AuthFormFields = styled(TextInput)`
   background-color: transparent;
 `;
 
-export const AuthPrivacyView = styled.View`
+export const AuthPrivacyContainer = styled.View`
+  width: 100%;
   position: absolute;
+  z-index: 9999;
   bottom: 20px;
-  margin: auto;
-  justify-content: center;
+  height: 50px;
+`;
+export const AuthPrivacyView = styled.View`
+  width: 100%;
   align-items: center;
 `;
 

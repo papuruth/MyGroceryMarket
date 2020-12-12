@@ -1,9 +1,10 @@
 import { colors } from '@/styles';
+import TextInput from '@/utils/reusableComponents/TextInput';
+import PropTypes from 'prop-types';
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { Avatar, TextInput } from 'react-native-paper';
+import { Avatar } from 'react-native-paper';
 import * as Progress from 'react-native-progress';
-import PropTypes from 'prop-types';
 import { imageSelector } from '../../../utils/commonFunctions';
 import { styles } from '../styles';
 
@@ -17,7 +18,9 @@ export const RenderBasicDetailsForm = ({
 }) => {
   const selectPhoto = async () => {
     const res = await imageSelector();
-    setPhotos(res, 'rawImage');
+    if (res) {
+      setPhotos(res, 'rawImage');
+    }
   };
   return (
     <View style={styles.editBasicProfileContainer}>
@@ -55,7 +58,7 @@ export const RenderBasicDetailsForm = ({
       <View>
         {uploading && (
           <View style={styles.progressBarContainer}>
-            <Progress.Bar progress={transferred} width={300} />
+            <Progress.Bar progress={transferred} width={null} />
           </View>
         )}
       </View>
@@ -63,9 +66,13 @@ export const RenderBasicDetailsForm = ({
   );
 };
 
+RenderBasicDetailsForm.defaultProps = {
+  photoURL: undefined,
+  displayName: undefined,
+};
 RenderBasicDetailsForm.propTypes = {
-  displayName: PropTypes.string.isRequired,
-  photoURL: PropTypes.string.isRequired,
+  displayName: PropTypes.string,
+  photoURL: PropTypes.string,
   uploading: PropTypes.bool.isRequired,
   transferred: PropTypes.number.isRequired,
   onChange: PropTypes.func.isRequired,

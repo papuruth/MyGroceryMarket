@@ -70,8 +70,6 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   inputFiledsContainer: {
-    display: 'flex',
-    flexDirection: 'column',
     justifyContent: 'space-between',
   },
   inputFields: {
