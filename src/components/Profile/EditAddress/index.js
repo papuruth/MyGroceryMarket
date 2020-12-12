@@ -7,9 +7,10 @@ import {
 import { colors } from '@/styles';
 import { checkEmpty, equalityChecker } from '@/utils/commonFunctions';
 import PropTypes from 'prop-types';
+import firestore from '@react-native-firebase/firestore';
 import React, { PureComponent } from 'react';
 import { Alert, SafeAreaView, ScrollView, Text, View } from 'react-native';
-import { Card, Dialog, Divider, IconButton, Portal } from 'react-native-paper';
+import { Card, Dialog, Divider, IconButton, Portal, RadioButton } from 'react-native-paper';
 import { loaderStartAction } from '../../../redux/loaderService/LoaderAction';
 import { Button } from '../../../utils/reusableComponents';
 import { styles } from '../styles';
@@ -30,6 +31,7 @@ export default class EditAddress extends PureComponent {
       addressType: 'Home',
       showNewAddressForm: false,
     };
+    this.initialState = this.state;
     this.fetchAddress(props);
   }
 
@@ -58,19 +60,32 @@ export default class EditAddress extends PureComponent {
   fetchAddress = (props) => {
     const { dispatch, user } = props;
     dispatch(loaderStartAction());
-    dispatch(getAllAddressAction(user?.phoneNumber));
+    dispatch(getAllAddressAction(user?.uid));
   };
 
   deleteAddress = (data) => {
     const { dispatch, user } = this.props;
-    dispatch(loaderStartAction());
-    dispatch(deleteAddressById(data?.addressId, user?.phoneNumber));
+    Alert.alert(
+      'Info',
+      'Are you sure? You want to delete this address, it is a non-reversible process.',
+      [
+        { text: 'Cancel', onPress: this.hideDialog, style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            dispatch(loaderStartAction());
+            dispatch(deleteAddressById(data?._id, user?.uid));
+          },
+        },
+      ],
+    );
   };
 
-  editAddress = ({ addressId, buildingName, city, postalCode, state, street, addressType }) => {
+  editAddress = ({ _id, buildingName, city, postalCode, state, street, addressType }) => {
     this.setState({
       visible: true,
-      addressId,
+      addressId: _id,
       buildingName,
       city,
       postalCode,
@@ -89,7 +104,6 @@ export default class EditAddress extends PureComponent {
   };
 
   handleUserInput = (name, value) => {
-    console.log(name, value);
     this.setState({
       [name]: value,
     });
@@ -104,29 +118,76 @@ export default class EditAddress extends PureComponent {
   updateAddress = () => {
     const { addressId, buildingName, city, postalCode, state, street, addressType } = this.state;
     const { dispatch, user } = this.props;
-    const updatePayload = { addressId, buildingName, city, postalCode, state, street, addressType };
-    dispatch(loaderStartAction());
-    dispatch(updateAddressById(addressId, user?.phoneNumber, updatePayload));
+    const updatePayload = { buildingName, city, postalCode, state, street, addressType };
+    if (buildingName && city && postalCode && state && street && addressType) {
+      dispatch(loaderStartAction());
+      dispatch(updateAddressById(addressId, user?.uid, updatePayload));
+    } else {
+      Alert.alert('Error', 'Please fill all the fields.!');
+    }
   };
 
   saveNewAddress = () => {
     const { dispatch, addressData, user } = this.props;
     const { buildingName, city, postalCode, state, street, addressType } = this.state;
     const payload = {
-      addressId: !checkEmpty(addressData) ? addressData.length + 1 : 1,
       buildingName,
       city,
       postalCode,
       state,
       street,
       addressType,
+      isDefault: !!checkEmpty(addressData),
     };
-    console.log(payload);
     if (buildingName && city && postalCode && state && street && addressType) {
       dispatch(loaderStartAction());
-      dispatch(addAddressAction(payload, user?.phoneNumber));
+      dispatch(addAddressAction(payload, user?.uid));
+      this.setState(this.initialState);
     } else {
       Alert.alert('Error', 'Please fill all the fields.!');
+    }
+  };
+
+  makeAddressDefault = async ({ _id }) => {
+    try {
+      const { user, addressData } = this.props;
+      const defaultExist = !checkEmpty(addressData)
+        ? addressData.findIndex((item) => item.isDefault)
+        : -1;
+      if (defaultExist > -1) {
+        const isDefaultAddress = addressData[defaultExist]._id === _id;
+        if (isDefaultAddress) {
+          const res = await firestore()
+            .collection('Address')
+            .doc(user?.uid)
+            .collection('user_address')
+            .doc(_id)
+            .update({
+              isDefault: false,
+            });
+          if (!res) {
+            Alert.alert('Success', 'Default address set successfully.');
+            this.fetchAddress(this.props);
+          }
+        } else {
+          Alert.alert('Info', 'You can have only 1 default address at a time.');
+        }
+      } else {
+        const res = await firestore()
+          .collection('Address')
+          .doc(user?.uid)
+          .collection('user_address')
+          .doc(_id)
+          .update({
+            isDefault: true,
+          });
+        if (!res) {
+          Alert.alert('Success', 'Default address set successfully.');
+          this.fetchAddress(this.props);
+        }
+      }
+    } catch (e) {
+      console.log(e?.message);
     }
   };
 
@@ -149,6 +210,7 @@ export default class EditAddress extends PureComponent {
             <Button
               bordered
               bgColor={colors.blue}
+              textColor={colors.black}
               caption="Add new address"
               onPress={this.addNewAddress}
             />
@@ -157,10 +219,17 @@ export default class EditAddress extends PureComponent {
             {!checkEmpty(addressData) ? (
               addressData.map((item) => {
                 return (
-                  <Card style={styles.addressCard} key={item?.addressId}>
+                  <Card style={styles.addressCard} key={item?._id}>
                     <Card.Title
                       titleStyle={styles.cardTitle}
                       title={item?.addressType}
+                      left={(props) => (
+                        <RadioButton
+                          status={item?.isDefault ? 'checked' : 'unchecked'}
+                          {...props}
+                          onPress={() => this.makeAddressDefault(item)}
+                        />
+                      )}
                       right={(props) => (
                         <View style={styles.addressActionIcon}>
                           <IconButton
@@ -206,10 +275,8 @@ export default class EditAddress extends PureComponent {
               })
             ) : (
               <View style={styles.editAddressNoAddress}>
-                <Text style={styles.noAddressText}>No address to edit.</Text>
-                <Text style={styles.noAddressText2}>
-                  Please add some address from Edit Profile Screen to edit them here.
-                </Text>
+                <Text style={styles.noAddressText}>No Address Found</Text>
+                <Text style={styles.noAddressText2}>Please add one.</Text>
               </View>
             )}
           </View>
@@ -217,43 +284,46 @@ export default class EditAddress extends PureComponent {
         <Portal>
           <Dialog visible={visible || showNewAddressForm} dismissable={false}>
             <Dialog.Title>{visible ? 'Edit Address' : 'Add New Address'}</Dialog.Title>
-            <Dialog.Content>
-              {visible ? (
-                <RenderAddressEditForm
-                  buildingName={buildingName}
-                  city={city}
-                  postalCode={postalCode}
-                  state={state}
-                  street={street}
-                  addressType={addressType}
-                  onChange={this.handleUserInput}
+            <ScrollView style={{ width: '100%', height: 'auto' }}>
+              <Dialog.Content>
+                {visible ? (
+                  <RenderAddressEditForm
+                    buildingName={buildingName}
+                    city={city}
+                    postalCode={postalCode}
+                    state={state}
+                    street={street}
+                    addressType={addressType}
+                    onChange={this.handleUserInput}
+                  />
+                ) : null}
+                {showNewAddressForm ? (
+                  <RenderNewAddressForm
+                    buildingName={buildingName}
+                    city={city}
+                    postalCode={postalCode}
+                    state={state}
+                    street={street}
+                    addressType={addressType}
+                    onChange={this.handleUserInput}
+                  />
+                ) : null}
+              </Dialog.Content>
+              <Dialog.Actions>
+                <Button
+                  rounded
+                  style={styles.editProfileButton}
+                  onPress={this.hideDialog}
+                  caption="Cancel"
                 />
-              ) : (
-                <RenderNewAddressForm
-                  buildingName={buildingName}
-                  city={city}
-                  postalCode={postalCode}
-                  state={state}
-                  street={street}
-                  addressType={addressType}
-                  onChange={this.handleUserInput}
+                <Button
+                  rounded
+                  style={styles.editProfileButton}
+                  onPress={visible ? this.updateAddress : this.saveNewAddress}
+                  caption="Done"
                 />
-              )}
-            </Dialog.Content>
-            <Dialog.Actions>
-              <Button
-                rounded
-                style={styles.editProfileButton}
-                onPress={this.hideDialog}
-                caption="Cancel"
-              />
-              <Button
-                rounded
-                style={styles.editProfileButton}
-                onPress={visible ? this.updateAddress : this.saveNewAddress}
-                caption="Done"
-              />
-            </Dialog.Actions>
+              </Dialog.Actions>
+            </ScrollView>
           </Dialog>
         </Portal>
       </SafeAreaView>

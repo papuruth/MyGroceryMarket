@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <color name="colorPrimary">#3C38B1</color>
-  <color name="colorPrimaryDark">#3700B3</color>
+  <color name="primary_dark">#000000</color>
   <color name="colorAccent">#03DAC5</color>
-  <color name="splashscreen_bg">#424242</color>
-  <color name="app_bg">#424242</color>
+  <color name="app_bg">#3C38B1</color>
+  <color name="status_bar_color">#3C38B1</color>
+  <color name="bootsplash_background">#601890</color>
 </resources>

@@ -35,7 +35,8 @@ android/gradle
 node_modules/
 npm-debug.log
 yarn-error.log
-
+.env
+.env.production
 # BUCK
 buck-out/
 \.buckd/
@@ -48,9 +49,10 @@ buck-out/
 # For more information about the recommended setup visit:
 # https://docs.fastlane.tools/best-practices/source-control/
 
-*/fastlane/report.xml
-*/fastlane/Preview.html
-*/fastlane/screenshots
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/README.md
 
 # Bundle artifact
 *.jsbundle

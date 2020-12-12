@@ -1,0 +1,11 @@
+{
+  "extends": "recommended",
+  "rules": {
+    "NoDef": {
+      "enabled": false
+    },
+    "UnnecessaryGString": {
+      "enabled": false
+    }
+  }
+}

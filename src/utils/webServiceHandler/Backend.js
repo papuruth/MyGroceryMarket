@@ -9,11 +9,16 @@ import api from './API';
 export const getAPIData = async (url) => {
   try {
     const response = await api.get(url);
-    return response.data;
+    return {
+      type: 'response',
+      status: true,
+      payload: response.data,
+    };
   } catch (err) {
     return {
       type: 'error',
-      message: err.message,
+      status: false,
+      payload: err?.response || { message: err?.message },
     };
   }
 };
@@ -25,12 +30,16 @@ export const getAPIData = async (url) => {
 export const postAPIData = async (url, data) => {
   try {
     const response = await api.post(url, { ...data });
-    return response.data;
+    return {
+      type: 'response',
+      status: true,
+      payload: response.data,
+    };
   } catch (err) {
     return {
       type: 'error',
       status: false,
-      response: err.response ? err.response.data : {},
+      payload: err?.response || { message: err?.message },
     };
   }
 };
@@ -42,12 +51,16 @@ export const postAPIData = async (url, data) => {
 export const putAPIData = async (url, data) => {
   try {
     const response = await api.put(url, { ...data });
-    return response.data;
+    return {
+      type: 'response',
+      status: true,
+      payload: response.data,
+    };
   } catch (err) {
     return {
       type: 'error',
       status: false,
-      response: err.response ? err.response.data : {},
+      payload: err?.response || { message: err?.message },
     };
   }
 };

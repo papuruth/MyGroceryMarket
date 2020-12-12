@@ -19,19 +19,31 @@ const failure = (type, error) => ({
 const sendOTPService = async ({ phone }) => {
   try {
     const response = await auth().signInWithPhoneNumber(phone);
-    return { response };
+    return {
+      response: {
+        data: response,
+        status: true,
+        message: 'success',
+      },
+    };
   } catch (error) {
-    return { error };
+    return {
+      response: {
+        data: {},
+        status: false,
+        message: error?.userInfo?.message,
+      },
+    };
   }
 };
 
 function* sendOTPSaga(action) {
-  const { response, error } = yield call(sendOTPService, action.payload);
-  if (!checkEmpty(response)) {
+  const { response } = yield call(sendOTPService, action.payload);
+  if (!checkEmpty(response) && response?.status) {
     yield put(yield call(success, USER_CONSTANTS.SEND_OTP_SUCCESS, response));
     yield put({ type: LOADER_CONSTANTS.LOADER_STOP_REQUEST });
   } else {
-    yield put(yield call(failure, USER_CONSTANTS.SEND_OTP_FAILURE, response || error));
+    yield put(yield call(failure, USER_CONSTANTS.SEND_OTP_FAILURE, response));
     yield put({ type: LOADER_CONSTANTS.LOADER_STOP_REQUEST });
   }
 }
@@ -50,10 +62,13 @@ export function* userLogoutWatcherSaga() {
 
 const addAddressService = async ({ data, userId }) => {
   try {
-    const response = await firestore()
+    const docRef = firestore()
       .collection('Address')
-      .doc(`${userId}/user_address/${data?.addressId}`)
-      .set(data);
+      .doc(userId)
+      .collection('user_address')
+      .doc();
+    Object.assign(data, { _id: docRef.id });
+    const response = await docRef.set(data);
     if (response === null) {
       return { response: { message: 'success', status: true } };
     }
@@ -78,20 +93,25 @@ export function* addAddressWatcherSaga() {
   yield takeEvery(USER_CONSTANTS.ADD_ADDRESS_REQUEST, addAddressSaga);
 }
 
-const getAllAddressService = async (id) => {
+const getAllAddressService = async (userId) => {
   try {
-    console.log(id);
     const responseSnapshot = await firestore()
       .collection('Address')
-      .doc(id)
+      .doc(userId)
       .collection('user_address')
       .get();
     const docsSnapShot = responseSnapshot.docs;
     const data = docsSnapShot.map((item) => item._data);
-    return { response: data };
+    return { response: { data, status: true, message: 'success' } };
   } catch (error) {
     console.log(error);
-    return { error };
+    return {
+      response: {
+        data: [],
+        status: false,
+        message: error?.message,
+      },
+    };
   }
 };
 
@@ -172,4 +192,36 @@ function* deleteAddressByIdSaga(action) {
 
 export function* deleteAddressByIdWatcherSaga() {
   yield takeEvery(USER_CONSTANTS.DELETE_ADDRESS_REQUEST, deleteAddressByIdSaga);
+}
+
+const getAllMyOrdersService = async ({ userId }) => {
+  try {
+    const docSnap = await firestore()
+      .collection('orders')
+      .get();
+    const { docs } = docSnap;
+    const data = docs.map((item) => item.data()).filter((item) => item?.userId === userId);
+
+    if (!checkEmpty(data)) {
+      return { response: { data, status: true, message: 'success' } };
+    }
+    return { response: { data: [], status: true, message: 'success' } };
+  } catch (error) {
+    return { error };
+  }
+};
+
+function* getAllMyOrdersSaga(action) {
+  const { response, error } = yield call(getAllMyOrdersService, action.payload);
+  if (response && response?.status) {
+    yield put(yield call(success, USER_CONSTANTS.GET_MY_ORDERS_SUCCESS, response));
+    yield put({ type: LOADER_CONSTANTS.LOADER_STOP_REQUEST });
+  } else {
+    yield put(yield call(failure, USER_CONSTANTS.GET_MY_ORDERS_FAILURE, error));
+    yield put({ type: LOADER_CONSTANTS.LOADER_STOP_REQUEST });
+  }
+}
+
+export function* getAllMyOrdersWatcherSaga() {
+  yield takeEvery(USER_CONSTANTS.GET_MY_ORDERS_REQUEST, getAllMyOrdersSaga);
 }

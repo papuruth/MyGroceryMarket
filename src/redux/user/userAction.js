@@ -28,3 +28,8 @@ export const deleteAddressById = (docId, userId) => ({
   type: USER_CONSTANTS.DELETE_ADDRESS_REQUEST,
   payload: { docId, userId },
 });
+
+export const fetchAllOrdersAction = (userId) => ({
+  type: USER_CONSTANTS.GET_MY_ORDERS_REQUEST,
+  payload: { userId },
+});

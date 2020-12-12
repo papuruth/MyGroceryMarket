@@ -1,9 +1,10 @@
 import { NavigationContainer } from '@react-navigation/native';
 import React from 'react';
+import messaging from '@react-native-firebase/messaging';
 import { ActivityIndicator, Platform, StyleSheet, UIManager, View } from 'react-native';
+import { Provider as PaperProvider } from 'react-native-paper';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
-import { Provider as PaperProvider } from 'react-native-paper';
 import Navigator from './src/containers/App';
 import { persistor, store } from './src/store';
 import { colors } from './src/styles';
@@ -24,6 +25,8 @@ export default class App extends React.PureComponent {
         UIManager.setLayoutAnimationEnabledExperimental(true);
       }
     }
+
+    messaging().setBackgroundMessageHandler(async () => {});
   }
 
   render() {
