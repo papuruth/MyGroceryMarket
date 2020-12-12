@@ -1,15 +1,13 @@
-import auth from '@react-native-firebase/auth';
+import { handleLogout } from '@/utils/commonFunctions';
 import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Alert, Image, Pressable, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 import { Avatar } from 'react-native-paper';
-import { sessionService } from 'redux-react-native-session';
-import { userLogout } from '../redux/user/userAction';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import { colors } from '../styles';
 import APP_CONSTANTS from '../utils/appConstants/AppConstants';
 import { Button } from '../utils/reusableComponents';
-import Storage from '../utils/Storage';
 
 const {
   IMAGES: { iconDrawerHome, iconTabBooking, iconWallet },
@@ -72,8 +70,13 @@ const drawerData = [
   },
   {
     name: 'My Orders',
-    path: 'orders',
+    path: 'my-orders',
     icon: iconTabBooking,
+  },
+  {
+    name: 'My Cart',
+    path: 'cart',
+    icon: <Icon name="cart-plus" color="white" size={15} containerStyle={styles.padRight} />,
   },
   {
     name: 'Address Book',
@@ -86,20 +89,7 @@ export default function RenderDrawer(props) {
   const {
     IMAGES: { iconLogout, iconSettings },
   } = APP_CONSTANTS;
-  const { navigation, authenticated, user, dispatch } = props;
-  const handleLogout = async () => {
-    dispatch(userLogout());
-    await sessionService.deleteSession();
-    await sessionService.deleteUser();
-    await Storage.clearStorage();
-    await auth().signOut();
-    Alert.alert(
-      'Success',
-      'You have logged out successfully!',
-      [{ text: 'OK', onPress: () => navigation.navigate('login') }],
-      { cancelable: false },
-    );
-  };
+  const { navigation, authenticated, user } = props;
   return (
     <DrawerContentScrollView {...props}>
       <View style={styles.drawerHeader}>
@@ -132,7 +122,13 @@ export default function RenderDrawer(props) {
         )}
         {authenticated ? (
           <View style={styles.buttonContainer}>
-            <Button bordered rounded caption="Logout" icon={iconLogout} onPress={handleLogout} />
+            <Button
+              bordered
+              rounded
+              caption="Logout"
+              icon={iconLogout}
+              onPress={() => handleLogout(props)}
+            />
           </View>
         ) : null}
       </View>
@@ -142,7 +138,11 @@ export default function RenderDrawer(props) {
           key={`drawer_item-${idx + 1}`}
           label={() => (
             <View style={styles.menuLabelFlex}>
-              <Image style={{ width: 20, height: 20 }} source={item.icon} />
+              {typeof item?.icon === 'object' ? (
+                item?.icon
+              ) : (
+                <Image style={{ width: 20, height: 20 }} source={item.icon} />
+              )}
               <Text style={styles.menuTitle}>{item.name}</Text>
             </View>
           )}

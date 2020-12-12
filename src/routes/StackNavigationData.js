@@ -1,34 +1,48 @@
-import VerifyOTP from '@/containers/VerifyOTP';
+import MapScreen from '@/components/HomeScreen/MapScreen';
+import OrderDetailsScreen from '@/components/OrderDetailsScreen';
+import CategoriesScreen from '@/containers/CategoriesScreen';
+import CheckoutScreen from '@/containers/CheckoutScreen';
 import HomeScreen from '@/containers/HomeScreen';
 import LoginScreen from '@/containers/LoginScreen';
+import MyCartScreen from '@/containers/MyCartScreen';
+import MyOrdersScreen from '@/containers/MyOrdersScreen';
+import PaymentScreen from '@/containers/PaymentScreen';
+import ProductDetailsScreen from '@/containers/ProductDetailsScreen';
+import ProductsScreen from '@/containers/ProductsScreen';
+import VerifyOTP from '@/containers/VerifyOTP';
+import FeatureInDevelopment from '@/utils/reusableComponents/FeatureInDevelopment';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Image, TouchableOpacity } from 'react-native';
-import MapScreen from '@/components/HomeScreen/MapScreen';
-import AvailableInFullVersion from '../components/availableInFullVersion/AvailableInFullVersionViewContainer';
+import { SafeAreaView, StyleSheet, TouchableOpacity } from 'react-native';
+import { Icon } from 'react-native-elements';
 import EditAddress from '../containers/Address';
 import Profile from '../containers/Profile';
 import { colors, fonts } from '../styles';
 import APP_CONSTANTS from '../utils/appConstants/AppConstants';
 
 const {
-  IMAGES: { headerBackground, arrowBack },
+  IMAGES: { headerBackground },
 } = APP_CONSTANTS;
+
+const styles = StyleSheet.create({
+  headerLeftContainer: {
+    alignContent: 'center',
+    paddingLeft: 10,
+    justifyContent: 'center',
+  },
+  menuIcon: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+});
 const HeaderLeftComponent = ({ onPress }) => (
-  <TouchableOpacity
-    onPress={onPress}
-    style={{
-      paddingLeft: 10,
-    }}
-  >
-    <Image
-      source={arrowBack}
-      resizeMode="contain"
-      style={{
-        height: 20,
-      }}
-    />
-  </TouchableOpacity>
+  <SafeAreaView style={styles.headerLeftContainer}>
+    <TouchableOpacity onPress={onPress} style={styles.menuIcon}>
+      <Icon name="chevron-left" color="white" size={30} />
+    </TouchableOpacity>
+  </SafeAreaView>
 );
 
 HeaderLeftComponent.propTypes = {
@@ -37,7 +51,7 @@ HeaderLeftComponent.propTypes = {
 
 const StackNavigationData = [
   {
-    name: 'Pariso Foods',
+    name: '',
     path: 'home',
     component: HomeScreen,
     headerLeft: null,
@@ -61,7 +75,7 @@ const StackNavigationData = [
     },
   },
   {
-    name: 'Edit Address',
+    name: 'My Addresses',
     path: 'edit-address',
     component: EditAddress,
     headerLeft: HeaderLeftComponent,
@@ -73,21 +87,9 @@ const StackNavigationData = [
     },
   },
   {
-    name: 'Search',
-    path: 'search',
-    component: AvailableInFullVersion,
-    headerLeft: HeaderLeftComponent,
-    headerBackground: { source: headerBackground },
-    headerTitleStyle: {
-      fontFamily: fonts.primaryRegular,
-      color: colors.white,
-      fontSize: 18,
-    },
-  },
-  {
     name: 'Notifications',
     path: 'notification',
-    component: AvailableInFullVersion,
+    component: FeatureInDevelopment,
     headerLeft: HeaderLeftComponent,
     headerBackground: { source: headerBackground },
     headerTitleStyle: {
@@ -97,9 +99,33 @@ const StackNavigationData = [
     },
   },
   {
-    name: 'Cart Items',
+    name: 'My Cart',
     path: 'cart',
-    component: AvailableInFullVersion,
+    component: MyCartScreen,
+    headerLeft: HeaderLeftComponent,
+    headerBackground: { source: headerBackground },
+    headerTitleStyle: {
+      fontFamily: fonts.primaryRegular,
+      color: colors.white,
+      fontSize: 18,
+    },
+  },
+  {
+    name: 'Address and Date & Time',
+    path: 'checkout',
+    component: CheckoutScreen,
+    headerLeft: HeaderLeftComponent,
+    headerBackground: { source: headerBackground },
+    headerTitleStyle: {
+      fontFamily: fonts.primaryRegular,
+      color: colors.white,
+      fontSize: 18,
+    },
+  },
+  {
+    name: 'Payment & Place Order',
+    path: 'payment',
+    component: PaymentScreen,
     headerLeft: HeaderLeftComponent,
     headerBackground: { source: headerBackground },
     headerTitleStyle: {
@@ -111,7 +137,7 @@ const StackNavigationData = [
   {
     name: 'Settings',
     path: 'setting',
-    component: AvailableInFullVersion,
+    component: FeatureInDevelopment,
     headerLeft: HeaderLeftComponent,
     headerBackground: { source: headerBackground },
     headerTitleStyle: {
@@ -145,9 +171,33 @@ const StackNavigationData = [
     },
   },
   {
-    name: 'My Orders',
-    path: 'orders',
-    component: AvailableInFullVersion,
+    name: 'All Categories',
+    path: 'all-categories',
+    component: CategoriesScreen,
+    headerLeft: HeaderLeftComponent,
+    headerBackground: { source: headerBackground },
+    headerTitleStyle: {
+      fontFamily: fonts.primaryRegular,
+      color: colors.white,
+      fontSize: 18,
+    },
+  },
+  {
+    name: 'All Products',
+    path: 'products',
+    component: ProductsScreen,
+    headerLeft: HeaderLeftComponent,
+    headerBackground: { source: headerBackground },
+    headerTitleStyle: {
+      fontFamily: fonts.primaryRegular,
+      color: colors.white,
+      fontSize: 18,
+    },
+  },
+  {
+    name: 'Product Details',
+    path: 'product-details',
+    component: ProductDetailsScreen,
     headerLeft: HeaderLeftComponent,
     headerBackground: { source: headerBackground },
     headerTitleStyle: {
@@ -160,6 +210,30 @@ const StackNavigationData = [
     name: 'Choose Location',
     path: 'map-screen',
     component: MapScreen,
+    headerLeft: HeaderLeftComponent,
+    headerBackground: { source: headerBackground },
+    headerTitleStyle: {
+      fontFamily: fonts.primaryRegular,
+      color: colors.white,
+      fontSize: 18,
+    },
+  },
+  {
+    name: 'My Orders',
+    path: 'my-orders',
+    component: MyOrdersScreen,
+    headerLeft: HeaderLeftComponent,
+    headerBackground: { source: headerBackground },
+    headerTitleStyle: {
+      fontFamily: fonts.primaryRegular,
+      color: colors.white,
+      fontSize: 18,
+    },
+  },
+  {
+    name: 'Order Details',
+    path: 'order-details',
+    component: OrderDetailsScreen,
     headerLeft: HeaderLeftComponent,
     headerBackground: { source: headerBackground },
     headerTitleStyle: {

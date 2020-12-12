@@ -9,8 +9,10 @@ const initialState = {
   updateAddress: {},
   updateAddressError: {},
   addressData: [],
+  myOrders: [],
+  myOrdersError: {},
   addressDataError: {},
-  addressDeleteStatus: false,
+  addressDeleteStatus: {},
   addressDeleteError: {},
 };
 
@@ -25,8 +27,8 @@ export default function userReducer(state = initialState, action) {
     case USER_CONSTANTS.SEND_OTP_SUCCESS:
       return {
         ...state,
-        otpSentStatus: Boolean(action.payload),
-        otpConfirm: action.payload,
+        otpSentStatus: action?.payload?.status,
+        otpConfirm: action?.payload?.data,
       };
     case USER_CONSTANTS.SEND_OTP_FAILURE:
       return {
@@ -75,7 +77,7 @@ export default function userReducer(state = initialState, action) {
     case USER_CONSTANTS.GET_ALL_ADDRESS_SUCCESS:
       return {
         ...state,
-        addressData: action.payload,
+        addressData: action.payload.data || [],
       };
     case USER_CONSTANTS.GET_ALL_ADDRESS_FAILURE:
       return {
@@ -85,7 +87,7 @@ export default function userReducer(state = initialState, action) {
     case USER_CONSTANTS.DELETE_ADDRESS_REQUEST:
       return {
         ...state,
-        addressDeleteStatus: false,
+        addressDeleteStatus: {},
         addressDeleteError: {},
       };
     case USER_CONSTANTS.DELETE_ADDRESS_SUCCESS:
@@ -97,8 +99,19 @@ export default function userReducer(state = initialState, action) {
     case USER_CONSTANTS.DELETE_ADDRESS_FAILURE:
       return {
         ...state,
-        addressDeleteStatus: false,
+        addressDeleteStatus: {},
         addressDeleteError: action.error,
+      };
+    case USER_CONSTANTS.GET_MY_ORDERS_SUCCESS:
+      return {
+        ...state,
+        myOrders: action.payload.data,
+        myOrdersError: {},
+      };
+    case USER_CONSTANTS.GET_MY_ORDERS_FAILURE:
+      return {
+        ...state,
+        myOrdersError: action.error,
       };
     default:
       return { ...state };

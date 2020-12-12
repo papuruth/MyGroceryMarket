@@ -1,4 +1,7 @@
+import env from 'react-native-config';
+
 const ENV = {
-  API_HOST: 'https://construction-server.herokuapp.com',
+  API_HOST: env.API_HOST,
 };
+
 export default ENV;

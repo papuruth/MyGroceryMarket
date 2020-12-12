@@ -1,20 +1,20 @@
+import { getAllAddressAction } from '@/redux/user/userAction';
 import { colors } from '@/styles';
 import { checkEmpty } from '@/utils/commonFunctions';
 import { Text } from '@/utils/reusableComponents/StyledText';
 import { createStackNavigator } from '@react-navigation/stack';
-import React, { PureComponent } from 'react';
-import { Image, StyleSheet, TouchableOpacity } from 'react-native';
-import 'react-native-gesture-handler';
 import PropTypes from 'prop-types';
+import messaging from '@react-native-firebase/messaging';
+import React, { PureComponent } from 'react';
+import { Image, Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
+import 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/FontAwesome5';
-import APP_CONSTANTS from '../utils/appConstants/AppConstants';
-import WithBadge from '../utils/reusableComponents/WithBadge';
+import { Icon as RNEIcon } from 'react-native-elements';
+import { mountSearchAction } from '@/redux/products/ProductsAction';
+import IconWithBadge from '../utils/reusableComponents/IconWithBadge';
 import StackNavigationData from './StackNavigationData';
 
 const Stack = createStackNavigator();
-const NotifIcon = WithBadge(4)(Icon);
-const CartIcon = WithBadge(1)(Icon);
 
 const styles = StyleSheet.create({
   headerImage: {
@@ -23,11 +23,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    width: `${100}%`,
+    width: `100%`,
     height: 57,
   },
   padRight: {
-    marginRight: 12,
+    marginRight: 10,
   },
   headerRightContainer: {
     display: 'flex',
@@ -36,109 +36,156 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     margin: 10,
   },
-  chooseLocation: {
-    width: '100%',
-    maxWidth: 200,
+  headerLeftContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignContent: 'center',
     justifyContent: 'center',
   },
+  chooseLocation: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingHorizontal: 10,
+  },
+  menuIcon: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingLeft: 10,
+  },
   mapTextStyle: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: 'bold',
     textDecorationLine: 'underline',
     color: colors.white,
   },
 });
 
-const {
-  IMAGES: { iconMenu },
-} = APP_CONSTANTS;
-
 export default class NavigatorView extends PureComponent {
+  constructor(props) {
+    super();
+    this.state = {
+      initialRoute: '',
+    };
+    const { dispatch, user } = props;
+    dispatch(getAllAddressAction(user?.uid));
+  }
+
+  componentDidMount() {
+    const { navigation, authenticated } = this.props;
+    if (authenticated) {
+      messaging().onNotificationOpenedApp((remoteMessage) => {
+        navigation.navigate(remoteMessage?.data?.route);
+      });
+
+      // Check whether an initial notification is available
+      messaging()
+        .getInitialNotification()
+        .then((remoteMessage) => {
+          if (remoteMessage) {
+            this.setState(
+              {
+                initialRoute: remoteMessage?.data?.route,
+              },
+              () => navigation.navigate(remoteMessage?.data?.route),
+            );
+          }
+        });
+    }
+  }
+
+  mountSearch = () => {
+    const { dispatch } = this.props;
+    dispatch(mountSearchAction(true));
+  };
+
   headerLeftComponentMenu = () => {
-    const { navigation } = this.props;
+    const { navigation, addressData } = this.props;
+    const defaultAddress = !checkEmpty(addressData)
+      ? addressData.filter((item) => item?.isDefault)[0]
+      : null;
     return (
-      <SafeAreaView>
-        <TouchableOpacity
-          onPress={() => navigation.toggleDrawer()}
-          style={{
-            paddingLeft: 10,
-          }}
-        >
-          <Image
-            source={iconMenu}
-            resizeMode="contain"
-            style={{
-              height: 20,
-            }}
-          />
+      <SafeAreaView style={styles.headerLeftContainer}>
+        <TouchableOpacity onPress={() => navigation.toggleDrawer()} style={styles.menuIcon}>
+          <RNEIcon name="menu" type="material-community" color="white" size={30} />
         </TouchableOpacity>
+        <Pressable style={styles.chooseLocation}>
+          <RNEIcon
+            name="map-marker"
+            type="material-community"
+            color="white"
+            size={30}
+            containerStyle={styles.padRight}
+          />
+          <View style={{ justifyContent: 'flex-end' }}>
+            <Text style={{ color: colors.white, fontSize: 12 }}>Delivery Location</Text>
+            <Text style={styles.mapTextStyle}>{defaultAddress?.street}</Text>
+          </View>
+        </Pressable>
       </SafeAreaView>
     );
   };
 
   headerRightComponent = () => {
-    const { navigation } = this.props;
-    let isMapScrenRoute = null;
-    console.log(this.props);
+    const { navigation, myCartItems, route } = this.props;
+    let isHome = false;
+    let isCart = false;
+    let isCheckout = false;
+    let isPayment = false;
     if (this.props) {
-      const { route } = this.props;
       const { state } = !checkEmpty(route) ? route : {};
       const { routes } = state || {};
-      isMapScrenRoute = !checkEmpty(routes)
-        ? routes[routes.length - 1].name === 'map-screen'
-        : false;
+      isHome = !checkEmpty(routes) ? routes[routes.length - 1].name === 'home' : false;
+      isCart = !checkEmpty(routes) ? routes[routes.length - 1].name === 'cart' : false;
+      isCheckout = !checkEmpty(routes) ? routes[routes.length - 1].name === 'checkout' : false;
+      isPayment = !checkEmpty(routes) ? routes[routes.length - 1].name === 'payment' : false;
     }
     return (
       <SafeAreaView style={styles.headerRightContainer}>
-        {!isMapScrenRoute ? (
+        {!checkEmpty(route?.state?.routes) && !isHome && !isCheckout && !isPayment ? (
           <TouchableOpacity
-            onPress={() => navigation.navigate('map-screen')}
-            style={styles.chooseLocation}
+            onPress={() => this.mountSearch()}
+            style={{
+              paddingLeft: 10,
+            }}
           >
-            <Icon name="map-marker-alt" color="white" size={20} style={styles.padRight} />
-            <Text style={styles.mapTextStyle}>Choose Location</Text>
+            <RNEIcon name="search" color="white" size={30} containerStyle={styles.padRight} />
           </TouchableOpacity>
         ) : null}
-        <TouchableOpacity
-          onPress={() => navigation.navigate('search')}
-          style={{
-            paddingLeft: 10,
-            marginRight: 10,
-          }}
-        >
-          <Icon name="search" color="white" size={20} containerStyle={styles.padRight} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('notification')}
-          style={{
-            paddingLeft: 10,
-            marginRight: 10,
-          }}
-        >
-          <NotifIcon name="bell" color="white" size={20} containerStyle={styles.padRight} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('cart')}
-          style={{
-            paddingLeft: 10,
-            marginRight: 10,
-          }}
-        >
-          <CartIcon name="cart-plus" color="white" size={20} containerStyle={styles.padRight} />
-        </TouchableOpacity>
+        {!isCart && !isCheckout && !isPayment ? (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('cart')}
+            style={{
+              paddingLeft: 10,
+              marginRight: 10,
+            }}
+          >
+            <IconWithBadge badgeValue={myCartItems?.length}>
+              <RNEIcon
+                name="cart-plus"
+                type="font-awesome"
+                color="white"
+                size={30}
+                containerStyle={styles.padRight}
+              />
+            </IconWithBadge>
+          </TouchableOpacity>
+        ) : null}
       </SafeAreaView>
     );
   };
 
   render() {
     const { authenticated } = this.props;
+    const { initialRoute } = this.state;
     return (
       <Stack.Navigator
         screenOptions={{
           headerShown: authenticated,
         }}
+        initialRouteName={initialRoute}
       >
         {StackNavigationData.map((item) => {
           if (authenticated && item.path !== 'login' && item.path !== 'verify-otp') {
@@ -188,4 +235,8 @@ NavigatorView.propTypes = {
   navigation: PropTypes.oneOfType([PropTypes.object]).isRequired,
   route: PropTypes.oneOfType([PropTypes.object]).isRequired,
   authenticated: PropTypes.bool.isRequired,
+  dispatch: PropTypes.func.isRequired,
+  user: PropTypes.oneOfType([PropTypes.object]).isRequired,
+  myCartItems: PropTypes.oneOfType([PropTypes.array]).isRequired,
+  addressData: PropTypes.oneOfType([PropTypes.array]).isRequired,
 };

@@ -2,4 +2,5 @@
   <string name="app_name">MyGroceryShop</string>
   <string name="splash">splash</string>
   <string name="splash_logo">sp_logo</string>
+    <string name="launch_screen">Launch screen</string>
 </resources>

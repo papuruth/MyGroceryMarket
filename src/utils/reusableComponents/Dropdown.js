@@ -57,6 +57,7 @@ class DropDown extends React.Component {
       height,
       selectedIndex,
       placeholder,
+      outerColor,
     } = this.props;
     const { isOpened } = this.state;
     return (
@@ -79,15 +80,15 @@ class DropDown extends React.Component {
           return params;
         }}
         renderRow={(text) => this.renderRow(text, color)}
-        onSelect={onSelect}
+        onSelect={(index, data) => onSelect(index, data)}
       >
         <View style={[styles.container, { borderColor, height }]}>
-          <Text style={{ color }}>
+          <Text style={{ color: outerColor }}>
             {selectedIndex > -1 && items[selectedIndex] ? items[selectedIndex] : placeholder}
           </Text>
           <Icon
             name={isOpened ? 'angle-up' : 'angle-down'}
-            color={color}
+            color={outerColor}
             size={20}
             style={styles.icon}
           />
@@ -103,6 +104,7 @@ DropDown.defaultProps = {
   color: colors.primary,
   borderColor: colors.primary,
   height: undefined,
+  outerColor: '#fff',
   style: {},
 };
 
@@ -115,6 +117,7 @@ DropDown.propTypes = {
   height: PropTypes.number,
   selectedIndex: PropTypes.number,
   placeholder: PropTypes.string,
+  outerColor: PropTypes.string,
 };
 
 export default DropDown;

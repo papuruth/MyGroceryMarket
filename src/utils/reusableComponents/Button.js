@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     backgroundColor: 'transparent',
-    borderRadius: 5,
+    // borderRadius: 5,
   },
   rounded: {
     borderRadius: HEIGHT_LARGE / 2,
@@ -172,6 +172,7 @@ export default function Button(props) {
           styles.primaryButton,
           rounded && { borderRadius },
           action && styles.action,
+          style,
         ]}
       >
         {iconMod && <View>{iconMod}</View>}
@@ -183,6 +184,7 @@ export default function Button(props) {
               small && styles.captionSmall,
               iconMod && styles.captionWithIcon,
               styles.primaryCaption,
+              { color: textColor },
             ]}
           >
             {caption}
@@ -225,7 +227,7 @@ Button.defaultProps = {
   action: undefined,
   bgGradientStart: undefined,
   bgGradientEnd: undefined,
-  textColor: undefined,
+  textColor: colors.white,
   secondary: undefined,
   primary: undefined,
 };

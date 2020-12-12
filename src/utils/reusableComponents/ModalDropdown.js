@@ -306,8 +306,6 @@ export default class ModalDropdown extends Component {
   };
 
   onRowPress = (rowData, rowID) => {
-    console.log('hello');
-    console.log(rowID, rowData);
     const { onSelect, renderButtonText, onDropdownWillHide } = this.props;
     if (!onSelect || onSelect(rowID, rowData) !== false) {
       // highlightRow(sectionID, rowID);

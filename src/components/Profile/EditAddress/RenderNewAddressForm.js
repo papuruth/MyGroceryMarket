@@ -1,8 +1,8 @@
-import { Caption, Text } from '@/utils/reusableComponents/StyledText';
+import TextInput from '@/utils/reusableComponents/TextInput';
+import PropTypes from 'prop-types';
 import React from 'react';
 import { View } from 'react-native';
-import PropTypes from 'prop-types';
-import { RadioButton, TextInput } from 'react-native-paper';
+import { Caption, RadioButton, Text } from 'react-native-paper';
 import { styles } from '../styles';
 
 export const RenderNewAddressForm = ({
@@ -35,7 +35,7 @@ export const RenderNewAddressForm = ({
         mode="outlined"
         value={city}
         onSubmitEditing={() => postalInputRef.focus()}
-        ref={(cityRef) => {
+        inputRef={(cityRef) => {
           cityInputRef = cityRef;
         }}
         blurOnSubmit={false}
@@ -48,7 +48,7 @@ export const RenderNewAddressForm = ({
         keyboardType="number-pad"
         value={postalCode}
         onSubmitEditing={() => stateInputRef.focus()}
-        ref={(postalRef) => {
+        inputRef={(postalRef) => {
           postalInputRef = postalRef;
         }}
         blurOnSubmit={false}
@@ -60,7 +60,7 @@ export const RenderNewAddressForm = ({
         mode="outlined"
         value={state}
         onSubmitEditing={() => streetInputRef.focus()}
-        ref={(stateRef) => {
+        inputRef={(stateRef) => {
           stateInputRef = stateRef;
         }}
         blurOnSubmit={false}
@@ -70,9 +70,10 @@ export const RenderNewAddressForm = ({
         style={styles.inputFields}
         label="Street / Lane"
         mode="outlined"
-        ref={(streetRef) => {
+        inputRef={(streetRef) => {
           streetInputRef = streetRef;
         }}
+        onSubmitEditing={() => streetInputRef.blur()}
         value={street}
         onChangeText={(text) => onChange('street', text)}
       />
@@ -95,12 +96,19 @@ export const RenderNewAddressForm = ({
   );
 };
 
+RenderNewAddressForm.defaultProps = {
+  buildingName: '',
+  city: '',
+  postalCode: '',
+  state: '',
+  street: '',
+};
 RenderNewAddressForm.propTypes = {
-  buildingName: PropTypes.string.isRequired,
-  city: PropTypes.string.isRequired,
-  postalCode: PropTypes.string.isRequired,
-  state: PropTypes.string.isRequired,
-  street: PropTypes.string.isRequired,
+  buildingName: PropTypes.string,
+  city: PropTypes.string,
+  postalCode: PropTypes.string,
+  state: PropTypes.string,
+  street: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   addressType: PropTypes.string.isRequired,
 };
