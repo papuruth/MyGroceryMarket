@@ -26,7 +26,7 @@ platform :android do
     )
     gradle(
       project_dir: './android',
-      task: 'assemble',
+      task: 'bundle',
       build_type: 'release'
     )
   end

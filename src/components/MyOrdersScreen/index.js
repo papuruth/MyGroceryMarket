@@ -65,7 +65,7 @@ export default class MyOrdersScreen extends PureComponent {
             <DeliveryInfo>
               <Icon name="basket" size={18} style={{ paddingRight: 8 }} color={colors.ERROR} />
               <StyledTitle size={14} bold>
-                Delivered by {item?.distributorDetails?.business || item?.distributorDetails?.name}
+                Delivered by MyGroceryMarket
               </StyledTitle>
             </DeliveryInfo>
             <StyledItemDetailsContaner>

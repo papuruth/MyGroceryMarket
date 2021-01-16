@@ -116,6 +116,7 @@ android {
 
 dependencies {
   implementation 'com.facebook.react:react-native:0.20.1'
+  implementation "androidx.browser:browser:1.2.0"
   implementation 'androidx.appcompat:appcompat:1.2.0'
   implementation 'androidx.constraintlayout:constraintlayout:2.0.4'// From node_modules
     def multidex_version = '2.0.1'
