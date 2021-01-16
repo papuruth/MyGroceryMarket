@@ -3,7 +3,7 @@ import { loaderStartAction } from '@/redux/loaderService/LoaderAction';
 import { fetchProductDetailsAction } from '@/redux/products/ProductsAction';
 import { colors } from '@/styles';
 import APP_CONSTANTS from '@/utils/appConstants/AppConstants';
-import { checkEmpty, equalityChecker } from '@/utils/commonFunctions';
+import { checkEmpty, currencyFormatter, handleCartLogic } from '@/utils/commonFunctions';
 import { Button } from '@/utils/reusableComponents';
 import Rating from '@/utils/reusableComponents/Ratings';
 import firestore from '@react-native-firebase/firestore';
@@ -27,50 +27,43 @@ import {
 } from './styles';
 
 export default class ProductDetailsScreen extends React.PureComponent {
-  constructor(props) {
+  constructor() {
     super();
     this.state = {
       tabsSelected: 0,
       expandedList: new Map(),
-      productInCart: {},
-      productCount: 0,
+      productDetails: {},
     };
-    this.fetchProductDetails(props);
+  }
+
+  static getDerivedStateFromProps(props) {
+    const { myCartItems, productDetails } = props;
+    if (!checkEmpty(productDetails)) {
+      const productExist = myCartItems.findIndex((item) => item.productId === productDetails?._id);
+      if (productExist > -1) {
+        const copyProduct = { ...productDetails };
+        copyProduct.cart = myCartItems[productExist];
+        return {
+          productDetails: copyProduct,
+        };
+      }
+      return {
+        productDetails,
+      };
+    }
+    return null;
   }
 
   componentDidMount() {
     this.fetchProductDetails(this.props);
-    this.getProductCount();
   }
 
-  componentDidUpdate(prevProps) {
-    const { myCartItems } = this.props;
-    if (!equalityChecker(myCartItems, prevProps.myCartItems)) {
-      this.getProductCount();
-    }
-  }
-
-  getProductCount = () => {
-    const { myCartItems, route } = this.props;
-    const { params } = route || {};
-    const { productId } = params || {};
-    if (!checkEmpty(myCartItems)) {
-      const productExist = myCartItems.findIndex((item) => item.productId === productId);
-      if (productExist > -1) {
-        this.setState({
-          productCount: myCartItems[productExist].itemCount,
-          productInCart: myCartItems[productExist],
-        });
-      }
-    }
-  };
-
-  fetchProductDetails = (props) => {
+  fetchProductDetails = (props, action) => {
     const { route, dispatch, user } = props;
     const { params } = route || {};
     const { productId } = params || {};
     dispatch(loaderStartAction());
-    dispatch(fetchProductDetailsAction(productId));
+    dispatch(fetchProductDetailsAction(productId, action));
     dispatch(fetchMyCartItemsAction(user?.uid));
   };
 
@@ -111,7 +104,7 @@ export default class ProductDetailsScreen extends React.PureComponent {
         .doc(productId)
         .update(copyProduct);
       if (!res) {
-        this.fetchProductDetails(this.props);
+        this.fetchProductDetails(this.props, 'update');
       }
     } else {
       const ratingExists = copyProduct.ratings.data.findIndex((item) => item.userId === user?.uid);
@@ -127,7 +120,7 @@ export default class ProductDetailsScreen extends React.PureComponent {
           .doc(productId)
           .update(copyProduct);
         if (!res) {
-          this.fetchProductDetails(this.props);
+          this.fetchProductDetails(this.props, 'update');
         }
       } else {
         copyProduct.ratings.data.push({
@@ -144,7 +137,7 @@ export default class ProductDetailsScreen extends React.PureComponent {
           .doc(productId)
           .update(copyProduct);
         if (!res) {
-          this.fetchProductDetails(this.props);
+          this.fetchProductDetails(this.props, 'update');
         }
       }
     }
@@ -176,110 +169,73 @@ export default class ProductDetailsScreen extends React.PureComponent {
     }, this.forceUpdate());
   };
 
-  removeFromCart = () => {
-    this.setState(
-      (state) => {
-        if (!checkEmpty(state.productInCart) && state.productCount > 0) {
-          const product = { ...state.productInCart };
-          product.itemCount -= 1;
-          return {
-            productInCart: product,
-            productCount: state.productCount - 1,
-          };
-        }
-        return state;
-      },
-      () => this.updateGlobalCart('update'),
-    );
-    this.forceUpdate();
-  };
-
-  addToCartPlus = (data) => {
-    let action = 'new';
-    this.setState(
-      (state) => {
-        if (state.productCount < data?.total) {
-          if (!checkEmpty(state.productInCart) && state.productCount > 0) {
-            const product = { ...state.productInCart };
-            product.itemCount += 1;
-            action = 'update';
-            return {
-              productInCart: product,
-              productCount: state.productCount + 1,
-            };
-          }
-          const newCartItem = {
-            productId: data?._id,
-            name: data?.product,
-            price: data?.price,
-            image: data?.image,
-            total: data?.total,
-            itemCount: 1,
-          };
-          return {
-            productInCart: newCartItem,
-            productCount: state.productCount + 1,
-          };
-        }
-        Alert.alert('Info', 'Product quantity exhausted.');
-        return state;
-      },
-      () => this.updateGlobalCart(action),
-    );
-    this.forceUpdate();
-  };
-
-  updateGlobalCart = async (action) => {
+  addToCartPlus = async (item) => {
     try {
-      const { productInCart } = this.state;
-      const { dispatch, user } = this.props;
-      const product = { ...productInCart };
-      if (action === 'new') {
-        const docRef = firestore()
-          .collection('my-cart')
-          .doc(user?.uid)
-          .collection('cart-items')
-          .doc();
-        product._id = docRef.id;
-        const res = await docRef.set(product);
-        if (!res) {
-          dispatch(fetchMyCartItemsAction(user?.uid));
-        }
-      } else if (action === 'update') {
-        if (product?.itemCount > 0) {
-          const res = await firestore()
-            .collection('my-cart')
-            .doc(user?.uid)
-            .collection('cart-items')
-            .doc(product?._id)
-            .update(product);
-          if (!res) {
-            dispatch(fetchMyCartItemsAction(user?.uid));
-          }
-        } else {
-          const res = await firestore()
-            .collection('my-cart')
-            .doc(user?.uid)
-            .collection('cart-items')
-            .doc(product?._id)
-            .delete();
-          if (!res) {
-            dispatch(fetchMyCartItemsAction(user?.uid));
-            this.setState({
-              productCount: 0,
-            });
-          }
-        }
+      const { myCartItems, dispatch } = this.props;
+      const res = await handleCartLogic(item, myCartItems, 'add');
+      if (res?.status) {
+        dispatch(fetchMyCartItemsAction());
+      } else {
+        throw Error(res?.message);
       }
     } catch (e) {
-      Alert.alert('Error', 'Oops! Unable to add product to cart.');
+      Alert.alert('Info', e?.message);
     }
   };
 
+  removeFromCart = async (item) => {
+    try {
+      const { myCartItems, dispatch } = this.props;
+      const res = await handleCartLogic(item, myCartItems, 'remove');
+      if (res?.status) {
+        dispatch(fetchMyCartItemsAction());
+      } else {
+        throw Error(res?.message);
+      }
+    } catch (e) {
+      console.log(e?.message);
+    }
+  };
+
+  getProductRating = (ratings) => {
+    const { user } = this.props;
+    const { averageRatings, data, totalRatings } = ratings || {};
+    const userHasRated = !checkEmpty(data) ? data.some((item) => item.userId === user?.uid) : false;
+    if (!userHasRated) {
+      return (
+        <Rating
+          startingValue={0}
+          totalRating={totalRatings}
+          fractions={2}
+          showRating
+          isDisabled={false}
+          starSize={20}
+          onFinishRating={(rating) => this.ratingUserConsent(rating)}
+        />
+      );
+    }
+    return (
+      <Rating
+        startingValue={averageRatings}
+        totalRating={ratings?.totalRatings}
+        fractions={2}
+        showRating
+        isDisabled={
+          !checkEmpty(ratings?.data)
+            ? ratings.data.some((item) => item.userId === user?.uid)
+            : false
+        }
+        starSize={20}
+        onFinishRating={(rating) => this.ratingUserConsent(rating)}
+      />
+    );
+  };
+
   render() {
-    const { productDetails, user } = this.props;
-    const { tabsSelected, expandedList, productCount } = this.state;
-    const { image, _id, product, price, quantity, unit, features, ratings } = productDetails || {};
+    const { tabsSelected, expandedList, productDetails } = this.state;
+    const { image, _id, product, price, quantity, unit, features, ratings, cart } =
+      productDetails || {};
+
     const {
       IMAGES: { background },
     } = APP_CONSTANTS;
@@ -309,27 +265,15 @@ export default class ProductDetailsScreen extends React.PureComponent {
                 <StyledTitle size={20}>{product}</StyledTitle>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <StyledSubtitle>Product MRP: </StyledSubtitle>
-                  <StyledTitle size={16}>Rs. {price}</StyledTitle>
+                  <StyledTitle size={16}>Rs. {currencyFormatter(price)}</StyledTitle>
                 </View>
                 <StyledSubtitle>(inclusive of all taxes)</StyledSubtitle>
                 <StyledSubtitle>Unit: {`${quantity} ${unit}`}</StyledSubtitle>
               </ProductDetailsLeft>
               <ProductDetailsRight>
-                <Rating
-                  startingValue={ratings.averageRatings || 0}
-                  totalRating={ratings.totalRatings}
-                  fractions={2}
-                  showRating
-                  isDisabled={
-                    !checkEmpty(ratings?.data)
-                      ? ratings.data.some((item) => item.userId === user?.uid)
-                      : false
-                  }
-                  starSize={15}
-                  onFinishRating={(rating) => this.ratingUserConsent(rating)}
-                />
+                {this.getProductRating(ratings)}
                 <AddToCartButtonContainer>
-                  {productCount ? (
+                  {!checkEmpty(cart) ? (
                     <Button
                       bgColor={colors.yellow}
                       textColor={colors.black}
@@ -337,10 +281,10 @@ export default class ProductDetailsScreen extends React.PureComponent {
                       onPress={() => this.removeFromCart(productDetails)}
                     />
                   ) : null}
-                  {productCount ? (
-                    <StyledTitle style={{ paddingHorizontal: 15 }}>{productCount}</StyledTitle>
+                  {!checkEmpty(cart) ? (
+                    <StyledTitle style={{ paddingHorizontal: 15 }}>{cart?.itemCount}</StyledTitle>
                   ) : null}
-                  {!productCount ? (
+                  {!cart ? (
                     <Button
                       bgColor={colors.yellow}
                       textColor={colors.black}

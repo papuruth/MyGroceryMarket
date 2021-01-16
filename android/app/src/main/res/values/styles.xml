@@ -5,11 +5,12 @@
     <!-- Your base theme customization -->
     <item name="android:textColor">@color/primary_dark</item>
     <item name="android:windowBackground">@color/app_bg</item>
-    <item name="android:statusBarColor">@color/bootsplash_background</item>
+    <item name="android:statusBarColor">@color/status_bar_color</item>
   </style>
 
   <!-- BootTheme should inherit from AppTheme -->
   <style name="BootTheme" parent="AppTheme">
     <item name="android:background">@drawable/bootsplash</item>
+    <item name="android:statusBarColor">@color/bootsplash_background</item>
   </style>
 </resources>

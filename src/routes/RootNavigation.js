@@ -1,16 +1,19 @@
+import { loaderStartAction, loaderStopAction } from '@/redux/loaderService/LoaderAction';
+import { mountSearchAction } from '@/redux/products/ProductsAction';
 import { getAllAddressAction } from '@/redux/user/userAction';
 import { colors } from '@/styles';
 import { checkEmpty } from '@/utils/commonFunctions';
+import { Dropdown } from '@/utils/reusableComponents';
 import { Text } from '@/utils/reusableComponents/StyledText';
+import firestore from '@react-native-firebase/firestore';
+import messaging from '@react-native-firebase/messaging';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import PropTypes from 'prop-types';
-import messaging from '@react-native-firebase/messaging';
 import React, { PureComponent } from 'react';
 import { Image, Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
-import 'react-native-gesture-handler';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon as RNEIcon } from 'react-native-elements';
-import { mountSearchAction } from '@/redux/products/ProductsAction';
+import 'react-native-gesture-handler';
 import IconWithBadge from '../utils/reusableComponents/IconWithBadge';
 import StackNavigationData from './StackNavigationData';
 
@@ -24,17 +27,18 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     width: `100%`,
+    alignContent: 'center',
+    justifyContent: 'center',
     height: 57,
   },
   padRight: {
-    marginRight: 10,
+    marginRight: 0,
   },
   headerRightContainer: {
-    display: 'flex',
     flexDirection: 'row',
+    width: '100%',
     alignContent: 'center',
-    justifyContent: 'center',
-    margin: 10,
+    justifyContent: 'space-between',
   },
   headerLeftContainer: {
     flexDirection: 'row',
@@ -45,14 +49,14 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    width: '100%',
     justifyContent: 'flex-start',
     paddingHorizontal: 10,
   },
   menuIcon: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     paddingLeft: 10,
   },
   mapTextStyle: {
@@ -68,6 +72,8 @@ export default class NavigatorView extends PureComponent {
     super();
     this.state = {
       initialRoute: '',
+      mountAddressDropdown: false,
+      selectedAddressIndex: -1,
     };
     const { dispatch, user } = props;
     dispatch(getAllAddressAction(user?.uid));
@@ -77,7 +83,7 @@ export default class NavigatorView extends PureComponent {
     const { navigation, authenticated } = this.props;
     if (authenticated) {
       messaging().onNotificationOpenedApp((remoteMessage) => {
-        navigation.navigate(remoteMessage?.data?.route);
+        navigation.navigate('root', { screen: remoteMessage?.data?.route });
       });
 
       // Check whether an initial notification is available
@@ -89,10 +95,11 @@ export default class NavigatorView extends PureComponent {
               {
                 initialRoute: remoteMessage?.data?.route,
               },
-              () => navigation.navigate(remoteMessage?.data?.route),
+              () => navigation.navigate('root', { screen: remoteMessage?.data?.route }),
             );
           }
-        });
+        })
+        .catch((e) => console.log(e?.message));
     }
   }
 
@@ -101,60 +108,179 @@ export default class NavigatorView extends PureComponent {
     dispatch(mountSearchAction(true));
   };
 
-  headerLeftComponentMenu = () => {
-    const { navigation, addressData } = this.props;
-    const defaultAddress = !checkEmpty(addressData)
-      ? addressData.filter((item) => item?.isDefault)[0]
-      : null;
+  changeAddress = () => {
+    this.setState(
+      {
+        mountAddressDropdown: true,
+      },
+      () => this.forceUpdate(),
+    );
+  };
+
+  updateDefaultAddress = async () => {
+    const { user, addressData, dispatch } = this.props;
+    try {
+      dispatch(loaderStartAction());
+      const { selectedAddressIndex } = this.state;
+      const defaultExist = !checkEmpty(addressData)
+        ? addressData.findIndex((item) => item.isDefault)
+        : -1;
+      const selectedAddress = !checkEmpty(addressData) ? addressData[selectedAddressIndex] : [];
+      if (defaultExist > -1) {
+        const isDefaultAddress = addressData[defaultExist]._id === selectedAddress?._id;
+        if (isDefaultAddress) {
+          this.setState({
+            mountAddressDropdown: false,
+          });
+        } else {
+          const res = await firestore()
+            .collection('Address')
+            .doc(user?.uid)
+            .collection('user_address')
+            .doc(addressData[defaultExist]._id)
+            .update({
+              isDefault: false,
+            });
+          if (!res) {
+            const res1 = await firestore()
+              .collection('Address')
+              .doc(user?.uid)
+              .collection('user_address')
+              .doc(selectedAddress?._id)
+              .update({
+                isDefault: true,
+              });
+            if (!res1) {
+              this.setState({
+                mountAddressDropdown: false,
+              });
+              dispatch(getAllAddressAction(user?.uid));
+            }
+          }
+        }
+      } else {
+        const res = await firestore()
+          .collection('Address')
+          .doc(user?.uid)
+          .collection('user_address')
+          .doc(selectedAddress?._id)
+          .update({
+            isDefault: true,
+          });
+        if (!res) {
+          dispatch(getAllAddressAction(user?.uid));
+          this.setState({
+            mountAddressDropdown: false,
+          });
+        }
+      }
+      dispatch(loaderStopAction());
+    } catch (e) {
+      console.log(e?.message);
+      dispatch(loaderStopAction());
+    }
+  };
+
+  handleAddressSelected = (index) => {
+    this.setState(
+      {
+        selectedAddressIndex: index,
+      },
+      this.updateDefaultAddress,
+    );
+  };
+
+  conditionallyRenderDeliveryAddres = (data) => {
+    const { navigation } = this.props;
+    const { mountAddressDropdown, selectedAddressIndex } = this.state;
+    if (!checkEmpty(data)) {
+      const defaultAddress = data.filter((item) => item?.isDefault)[0] || {};
+      const addressOptions = data.map((item) => item?.street) || [];
+      if (!mountAddressDropdown && !checkEmpty(defaultAddress)) {
+        return (
+          <TouchableOpacity onPress={this.changeAddress}>
+            <View style={styles.chooseLocation}>
+              <View style={{ justifyContent: 'flex-end' }}>
+                <Text style={{ color: colors.white, fontSize: 12 }}>Delivery Location</Text>
+                <Text style={styles.mapTextStyle}>{defaultAddress?.street}...</Text>
+              </View>
+              <RNEIcon
+                style={{ paddingLeft: 5 }}
+                name="pencil"
+                type="material-community"
+                color="white"
+                size={20}
+                containerStyle={styles.padRight}
+              />
+            </View>
+          </TouchableOpacity>
+        );
+      }
+      if (mountAddressDropdown && data?.length > 1) {
+        return (
+          <View style={styles.chooseLocation}>
+            <Dropdown
+              items={addressOptions}
+              onSelect={this.handleAddressSelected}
+              selectedIndex={selectedAddressIndex}
+              placeholder="Change Address"
+              borderColor="#fff"
+              height={40}
+              outerColor="#fff"
+              color="#000"
+            />
+          </View>
+        );
+      }
+      if (data?.length > 0 && checkEmpty(defaultAddress)) {
+        return (
+          <Pressable style={styles.chooseLocation} onPress={this.changeAddress}>
+            <Text style={{ color: colors.white, fontSize: 12 }}>Select Delivery Address</Text>
+          </Pressable>
+        );
+      }
+    }
     return (
-      <SafeAreaView style={styles.headerLeftContainer}>
+      <Pressable style={styles.chooseLocation} onPress={() => navigation.navigate('edit-address')}>
+        <Text style={{ color: colors.white, fontSize: 12 }}>Select Delivery Address</Text>
+      </Pressable>
+    );
+  };
+
+  headerLeftComponentMenu = () => {
+    const { navigation } = this.props;
+    return (
+      <View style={styles.headerLeftContainer}>
         <TouchableOpacity onPress={() => navigation.toggleDrawer()} style={styles.menuIcon}>
           <RNEIcon name="menu" type="material-community" color="white" size={30} />
         </TouchableOpacity>
-        <Pressable style={styles.chooseLocation}>
-          <RNEIcon
-            name="map-marker"
-            type="material-community"
-            color="white"
-            size={30}
-            containerStyle={styles.padRight}
-          />
-          <View style={{ justifyContent: 'flex-end' }}>
-            <Text style={{ color: colors.white, fontSize: 12 }}>Delivery Location</Text>
-            <Text style={styles.mapTextStyle}>{defaultAddress?.street}</Text>
-          </View>
-        </Pressable>
-      </SafeAreaView>
+      </View>
     );
   };
 
   headerRightComponent = () => {
-    const { navigation, myCartItems, route } = this.props;
-    let isHome = false;
-    let isCart = false;
-    let isCheckout = false;
-    let isPayment = false;
-    if (this.props) {
-      const { state } = !checkEmpty(route) ? route : {};
-      const { routes } = state || {};
-      isHome = !checkEmpty(routes) ? routes[routes.length - 1].name === 'home' : false;
-      isCart = !checkEmpty(routes) ? routes[routes.length - 1].name === 'cart' : false;
-      isCheckout = !checkEmpty(routes) ? routes[routes.length - 1].name === 'checkout' : false;
-      isPayment = !checkEmpty(routes) ? routes[routes.length - 1].name === 'payment' : false;
-    }
+    const { navigation, myCartItems, route, addressData } = this.props;
+    const routeName = getFocusedRouteNameFromRoute(route) ?? '';
+    const isHome = routeName === 'home';
+    const isCart = routeName === 'cart';
+    const isPrivacy = routeName === 'privacy-policy' || routeName === 'tos';
+    const isCheckout = routeName === 'checkout';
+    const isPayment = routeName === 'payment';
     return (
-      <SafeAreaView style={styles.headerRightContainer}>
-        {!checkEmpty(route?.state?.routes) && !isHome && !isCheckout && !isPayment ? (
+      <View style={styles.headerRightContainer}>
+        {!routeName || isHome ? this.conditionallyRenderDeliveryAddres(addressData) : null}
+        {!isHome && !isCheckout && !isPayment && !isPrivacy ? (
           <TouchableOpacity
             onPress={() => this.mountSearch()}
             style={{
               paddingLeft: 10,
+              paddingRight: 10,
             }}
           >
             <RNEIcon name="search" color="white" size={30} containerStyle={styles.padRight} />
           </TouchableOpacity>
         ) : null}
-        {!isCart && !isCheckout && !isPayment ? (
+        {!isCart && !isCheckout && !isPayment && !isPrivacy ? (
           <TouchableOpacity
             onPress={() => navigation.navigate('cart')}
             style={{
@@ -173,18 +299,18 @@ export default class NavigatorView extends PureComponent {
             </IconWithBadge>
           </TouchableOpacity>
         ) : null}
-      </SafeAreaView>
+      </View>
     );
   };
 
   render() {
-    const { authenticated } = this.props;
+    const { authenticated, route } = this.props;
+    const routeName = getFocusedRouteNameFromRoute(route) ?? '';
+    const authRoutes = routeName === 'login' || routeName === 'verify-otp';
     const { initialRoute } = this.state;
     return (
       <Stack.Navigator
-        screenOptions={{
-          headerShown: authenticated,
-        }}
+        screenOptions={{ headerShown: (routeName && !authRoutes) || authenticated }}
         initialRouteName={initialRoute}
       >
         {StackNavigationData.map((item) => {
@@ -206,7 +332,13 @@ export default class NavigatorView extends PureComponent {
               />
             );
           }
-          if (!authenticated && (item.path === 'login' || item.path === 'verify-otp')) {
+          if (
+            !authenticated &&
+            (item.path === 'login' ||
+              item.path === 'verify-otp' ||
+              item.path === 'privacy-policy' ||
+              item.path === 'tos')
+          ) {
             return (
               <Stack.Screen
                 key={`stack_item-${item.path}`}

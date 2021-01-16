@@ -1,8 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 
-import com.android.build.OutputFile
-
 project.ext.react = [
     entryFile: 'index.js',
     enableHermes: true,
@@ -23,12 +21,12 @@ apply from: '../../node_modules/react-native/react.gradle'
  * Upload all the APKs to the Play Store and people will download
  * the correct one based on the CPU architecture of their device.
  */
-Boolean enableSeparateBuildPerCPUArchitecture = false
+def enableSeparateBuildPerCPUArchitecture = false
 
 /**
  * Run Proguard to shrink the Java bytecode in release builds.
  */
-Boolean enableProguardInReleaseBuilds = false
+def enableProguardInReleaseBuilds = true
 
 /**
  * The preferred build flavor of JavaScriptCore.
@@ -53,33 +51,32 @@ def enableHermes = project.ext.react.get('enableHermes', true)
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
+    ndkVersion "22.0.7026061"
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
     defaultConfig {
-        applicationId 'com.pariso.android.mygroceryshop'
+        applicationId 'com.pariso.android.mygrocerymarket'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 8
-        versionName "1.0.0"
-        missingDimensionStrategy 'react-native-camera', 'general'
+        versionCode 2
+        versionName "1.0.1"
         multiDexEnabled true
-
     }
     signingConfigs {
         debug {
-            storeFile file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
+          storeFile file('appsigning.keystore')
+          storePassword 'mygrocerymarket@1996'
+          keyAlias 'appsignkeys'
+          keyPassword 'mygrocerymarket@1996'
         }
         release {
-          storeFile file('release.keystore')
-          storePassword 'mygroceryshop@1996'
-          keyAlias 'mygroceryshoprelease'
-          keyPassword 'mygroceryshop@1996'
+          storeFile file('appsigning.keystore')
+          storePassword 'mygrocerymarket@1996'
+          keyAlias 'appsignkeys'
+          keyPassword 'mygrocerymarket@1996'
         }
     }
     splits {
@@ -90,37 +87,37 @@ android {
             include 'armeabi-v7a', 'x86', 'arm64-v8a', 'x86_64'
         }
     }
-    buildTypes {
+  buildToolsVersion buildToolsVersion
+  buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://facebook.github.io/react-native/docs/signed-apk-android.
             signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            ndk {
+              debugSymbolLevel 'SYMBOL_TABLE'
+            }
         }
     }
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
-            // For each separate APK per architecture, set a unique version code as described here:
-            // https://developer.android.com/studio/build/configure-apk-splits.html
-            def versionCodes = ['armeabi-v7a': 1, 'x86': 2, 'arm64-v8a': 3, 'x86_64': 4]
-            def abi = output.getFilter(OutputFile.ABI)
-            if (abi != null) {  // null for the universal-debug, universal-release variants
-                output.versionCodeOverride =
-                        versionCodes.get(abi) * 1048576 + defaultConfig.versionCode
+            def outputFile = output.outputFileName
+            if (outputFile != null && outputFile.endsWith('.apk')) {  
+                def dirName = outputFile.replace('.apk', "")
+                def fileName = outputFile.replace('.apk', "-${versionName}.apk")
+                output.outputFileName = new File(dirName, fileName)
             }
         }
     }
 }
 
 dependencies {
-  implementation 'com.facebook.react:react-native:+'
+  implementation 'com.facebook.react:react-native:0.20.1'
   implementation 'androidx.appcompat:appcompat:1.2.0'
-  implementation 'androidx.constraintlayout:constraintlayout:2.0.0'// From node_modules
+  implementation 'androidx.constraintlayout:constraintlayout:2.0.4'// From node_modules
     def multidex_version = '2.0.1'
     implementation "androidx.multidex:multidex:$multidex_version"
     if (enableHermes) {

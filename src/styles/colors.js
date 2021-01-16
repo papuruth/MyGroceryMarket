@@ -1,8 +1,8 @@
 const COLORS = {
   primary: '#555CC4',
   primaryLight: '#829BF8',
-  primaryGradientStart: '#4f44b6',
-  primaryGradientEnd: '#4f44b6',
+  primaryGradientStart: '#512225',
+  primaryGradientEnd: '#262A2C',
   secondaryGradientStart: '#FF1358',
   secondaryGradientEnd: '#FF1358',
   profileGradientStart: '#54CBF6',

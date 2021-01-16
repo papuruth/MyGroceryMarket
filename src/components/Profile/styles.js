@@ -55,6 +55,13 @@ export const styles = StyleSheet.create({
   label: {
     marginRight: 5,
     fontSize: 14,
+    color: colors.white,
+    fontWeight: 'bold',
+  },
+  textContent: {
+    marginRight: 5,
+    fontSize: 14,
+    color: colors.white,
     fontWeight: 'bold',
   },
   editProfileButton: {
@@ -97,14 +104,14 @@ export const styles = StyleSheet.create({
   },
   addressCard: {
     display: 'flex',
-    borderTopColor: colors.green,
-    borderTopWidth: 2,
-    backgroundColor: colors.WHITE,
+    borderColor: colors.white,
+    borderWidth: 2,
+    backgroundColor: 'transparent',
     flexDirection: 'column',
     marginBottom: 15,
   },
   cardTitle: {
-    color: colors.black,
+    color: colors.white,
   },
   addressEditContainer: {
     flex: 1,

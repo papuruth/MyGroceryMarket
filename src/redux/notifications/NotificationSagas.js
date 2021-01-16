@@ -1,5 +1,6 @@
 import APP_CONSTANTS from '@/utils/appConstants/AppConstants';
 import ENV from '@/utils/appConstants/Environment';
+import firestore from '@react-native-firebase/firestore';
 import { getAPIData, postAPIData } from '@/utils/webServiceHandler/Backend';
 import { NOTIFICATION_CONSTANTS } from './NotificationConstants';
 
@@ -34,12 +35,10 @@ const sendNewOrderRequestNotificationService = async ({ data, userId }) => {
           !checkEmpty(userDetails) && !checkEmpty(userDetails?.tokens)
             ? userDetails?.tokens.filter((token) => !failedTokens.includes(token))
             : [];
-        if (!checkEmpty(updateUserPayload)) {
-          await firestore()
-            .collection('distributors')
-            .doc(userId)
-            .update({ tokens: updateUserPayload });
-        }
+        await firestore()
+          .collection('distributors')
+          .doc(userId)
+          .update({ tokens: updateUserPayload });
       }
       return {
         response: {
@@ -51,6 +50,7 @@ const sendNewOrderRequestNotificationService = async ({ data, userId }) => {
     }
     throw new Error(JSON.stringify(res?.payload));
   } catch (error) {
+    console.log(error);
     return {
       error: {
         data: {},

@@ -30,8 +30,9 @@ export const AuthLogoView = styled.View`
 `;
 
 export const AuthLogo = styled.Image`
-  height: 150px;
-  width: 200px;
+  height: 100px;
+  width: 100px;
+  margin-bottom: 20px;
 `;
 
 export const AuthFormView = styled.View`
@@ -60,7 +61,7 @@ export const AuthPrivacyLink = styled.View`
   flex-direction: row;
   padding: 0px 20px;
   width: 90%;
-  justify-content: space-between;
+  justify-content: space-around;
 `;
 
 export const ResendOTPView = styled.View`

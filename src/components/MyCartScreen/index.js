@@ -3,9 +3,8 @@ import { fetchMyCartItemsAction } from '@/redux/globalCartAndCheckout/GlobalCart
 import { loaderStartAction } from '@/redux/loaderService/LoaderAction';
 import { colors } from '@/styles';
 import APP_CONSTANTS from '@/utils/appConstants/AppConstants';
-import { checkEmpty, currencyFormatter } from '@/utils/commonFunctions';
+import { checkEmpty, currencyFormatter, handleCartLogic } from '@/utils/commonFunctions';
 import { Button } from '@/utils/reusableComponents';
-import firestore from '@react-native-firebase/firestore';
 import LottieView from 'lottie-react-native';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -33,13 +32,16 @@ import {
 } from './styles';
 
 export default class MyCartScreen extends React.PureComponent {
-  constructor(props) {
+  constructor() {
     super();
     this.state = {
       deliveryCharges: 15,
       productsDiscount: 0,
     };
-    this.fetchMyCartItem(props);
+  }
+
+  componentDidMount() {
+    this.fetchMyCartItem(this.props);
   }
 
   fetchMyCartItem = (props) => {
@@ -55,66 +57,28 @@ export default class MyCartScreen extends React.PureComponent {
     navigation.navigate('product-details', { productId });
   };
 
-  addToCartPlus = async ({ productId }) => {
+  addToCartPlus = async (item) => {
     try {
-      const { myCartItems, user, dispatch } = this.props;
-      const prodExist = !checkEmpty(myCartItems)
-        ? myCartItems.findIndex((item) => item.productId === productId)
-        : -1;
-      if (prodExist > -1) {
-        const product = myCartItems[prodExist];
-        if (product?.itemCount < product?.total) {
-          product.itemCount += 1;
-          dispatch(loaderStartAction());
-          const res = await firestore()
-            .collection('my-cart')
-            .doc(user?.uid)
-            .collection('cart-items')
-            .doc(product?._id)
-            .update(product);
-          if (!res) {
-            dispatch(fetchMyCartItemsAction(user?.uid));
-          }
-        } else {
-          Alert.alert('Info', 'Sorry! Product quantity exhausted. Please try again later.');
-        }
+      const { myCartItems, dispatch } = this.props;
+      const res = await handleCartLogic({ cart: item }, myCartItems, 'add');
+      if (res?.status) {
+        dispatch(fetchMyCartItemsAction());
+      } else {
+        throw Error(res?.message);
       }
     } catch (e) {
-      console.log(e?.message);
+      Alert.alert('Info', e?.message);
     }
   };
 
-  removeFromCart = async ({ productId }) => {
+  removeFromCart = async (item) => {
     try {
-      const { myCartItems, user, dispatch } = this.props;
-      const prodExist = !checkEmpty(myCartItems)
-        ? myCartItems.findIndex((item) => item.productId === productId)
-        : -1;
-      if (prodExist > -1) {
-        const product = myCartItems[prodExist];
-        if (product?.itemCount > 1) {
-          product.itemCount -= 1;
-          dispatch(loaderStartAction());
-          const res = await firestore()
-            .collection('my-cart')
-            .doc(user?.uid)
-            .collection('cart-items')
-            .doc(product?._id)
-            .update(product);
-          if (!res) {
-            dispatch(fetchMyCartItemsAction(user?.uid));
-          }
-        } else {
-          const res = await firestore()
-            .collection('my-cart')
-            .doc(user?.uid)
-            .collection('cart-items')
-            .doc(product?._id)
-            .delete();
-          if (!res) {
-            dispatch(fetchMyCartItemsAction(user?.uid));
-          }
-        }
+      const { myCartItems, dispatch } = this.props;
+      const res = await handleCartLogic({ cart: item }, myCartItems, 'remove');
+      if (res?.status) {
+        dispatch(fetchMyCartItemsAction());
+      } else {
+        throw Error(res?.message);
       }
     } catch (e) {
       console.log(e?.message);
@@ -305,6 +269,5 @@ export default class MyCartScreen extends React.PureComponent {
 MyCartScreen.propTypes = {
   myCartItems: PropTypes.oneOfType([PropTypes.array]).isRequired,
   navigation: PropTypes.oneOfType([PropTypes.object]).isRequired,
-  user: PropTypes.oneOfType([PropTypes.object]).isRequired,
   dispatch: PropTypes.func.isRequired,
 };

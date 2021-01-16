@@ -8,18 +8,18 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:738194151653:android:30869ef49695d93c879c0c",
+        "mobilesdk_app_id": "1:738194151653:android:b4937f786db8ec9f879c0c",
         "android_client_info": {
-          "package_name": "com.pariso.android.mygroceryshop"
+          "package_name": "com.pariso.android.mygrocerymarket"
         }
       },
       "oauth_client": [
         {
-          "client_id": "738194151653-5lfd0eum6iu9b1cff9lrfs4m31052gp0.apps.googleusercontent.com",
+          "client_id": "738194151653-icgben39edn4go2vmcdvu2eh4t0kgg12.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.pariso.android.mygroceryshop",
-            "certificate_hash": "63232105b864b69c4abc47248f1aacb269d40216"
+            "package_name": "com.pariso.android.mygrocerymarket",
+            "certificate_hash": "5a32da4fb7e49d1c011056b3c024dd068f00a81e"
           }
         },
         {

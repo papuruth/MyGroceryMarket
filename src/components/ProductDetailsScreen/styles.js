@@ -20,6 +20,7 @@ export const ProductDetailsContainer = styled.SafeAreaView`
 
 export const ScrollContainer = styled.ScrollView`
   width: 100%;
+  height: 100%;
 `;
 
 export const StyledTitle = styled.Text`
@@ -33,32 +34,34 @@ export const StyledSubtitle = styled(Caption)`
 `;
 
 export const ProductImageContainer = styled(CommonContainer)`
-  margin: 5px;
-  height: 250px;
+  margin: 10px;
+  height: 300px;
   align-items: center;
   justify-content: center;
 `;
 
 export const StyledImage = styled.Image`
-  height: 200px;
-  width: 200px;
+  height: 300px;
+  width: 300px;
 `;
 
 export const ProductDetailsContent = styled(CommonContainer)`
   flex-direction: row;
   align-items: center;
   margin-bottom: 10px;
+  height: auto;
   padding: 10px 0px;
   justify-content: space-between;
 `;
 
 export const ProductDetailsRight = styled.View`
-  height: 100px;
-  justify-content: space-evenly;
+  align-items: center;
+  justify-content: flex-start;
 `;
 export const ProductDetailsLeft = styled.View`
-  justify-content: space-evenly;
-  height: 100px;
+  justify-content: flex-start;
+  width: 50%;
+  align-items: flex-start;
 `;
 
 export const ProductExtraDetails = styled(CommonContainer)`

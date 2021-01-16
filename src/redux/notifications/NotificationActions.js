@@ -1,8 +1,8 @@
 import { NOTIFICATION_CONSTANTS } from './NotificationConstants';
 
-export const sendNewOrderRequestNotificationAction = (data) => ({
+export const sendNewOrderRequestNotificationAction = (data, userId) => ({
   type: NOTIFICATION_CONSTANTS.SEND_NEW_ORDER_NOTIFICATION_REQUEST,
-  payload: { data },
+  payload: { data, userId },
 });
 
 export const wakeNotificationServerAction = () => ({

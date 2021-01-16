@@ -11,7 +11,7 @@ import OrderDetailsHeader from './OrderDetailsHeader';
 import { ItemsDetailsContainer, StyledContainer } from './styles';
 
 export default class OrderDetailsScreen extends PureComponent {
-  keyExtractor = ({ _id }) => _id;
+  keyExtractor = ({ productId }) => productId;
 
   renderOrderItems = ({ item }) => (
     <ListItem

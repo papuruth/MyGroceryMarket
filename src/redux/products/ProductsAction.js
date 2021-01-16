@@ -9,9 +9,9 @@ export const fetchProductsAction = (category) => ({
   payload: { category },
 });
 
-export const fetchProductDetailsAction = (productId) => ({
+export const fetchProductDetailsAction = (productId, action) => ({
   type: PRODUCTS_CONSTANTS.FETCH_PRODUCT_DETAILS_REQUEST,
-  payload: { productId },
+  payload: { productId, action },
 });
 
 export const fetchAllProductsAction = () => ({

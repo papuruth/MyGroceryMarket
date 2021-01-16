@@ -134,8 +134,9 @@ export default class App extends React.PureComponent {
         <Drawer.Navigator
           drawerStyle={{
             backgroundColor: '#3C38B1',
-            width: '85%',
+            width: '80%',
           }}
+          openByDefault={false}
           screenOptions={{
             swipeEnabled: authenticated,
           }}

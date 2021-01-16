@@ -16,6 +16,7 @@ import { CommonActions } from '@react-navigation/native';
 import { loaderStartAction, loaderStopAction } from '@/redux/loaderService/LoaderAction';
 import { fetchMyCartItemsAction } from '@/redux/globalCartAndCheckout/GlobalCartAndCheckoutAction';
 import { sendNewOrderRequestNotificationAction } from '@/redux/notifications/NotificationActions';
+import Storage from '@/utils/Storage';
 import { CheckoutPriceContainer, StyledPaymentButton } from '../CheckoutScreen/styles';
 import {
   OrderConfirmContainer,
@@ -53,7 +54,7 @@ export default class PaymentScreen extends PureComponent {
     navigation.navigate('product-details', { productId });
   };
 
-  keyExtractor = (item) => item?._id;
+  keyExtractor = (item) => item?.productId;
 
   renderItems = ({ item }) => (
     <ListItem
@@ -170,26 +171,13 @@ export default class PaymentScreen extends PureComponent {
         };
         dispatch(sendNewOrderRequestNotificationAction(notifPayload, distributor?.distributorId));
         if (!checkEmpty(myCartItems)) {
-          myCartItems.forEach(({ _id }) => {
-            firestore()
-              .collection('my-cart')
-              .doc(user?.uid)
-              .collection('cart-items')
-              .doc(_id)
-              .delete()
-              .then(() => console.log(`Deleted item with id ${_id}`));
-          });
-          firestore()
-            .collection('my-cart')
-            .doc(user?.uid)
-            .delete()
-            .then(() => console.log(`Deleted item with id ${user?.uid}`));
+          await Storage.clearCart();
         }
         this.setState({
           openDialog: false,
           openOrderPlacedDialog: true,
         });
-        dispatch(fetchMyCartItemsAction(user?.uid));
+        dispatch(fetchMyCartItemsAction());
         dispatch(loaderStopAction());
       }
     } catch (e) {
@@ -253,7 +241,7 @@ export default class PaymentScreen extends PureComponent {
                     </StyledTitle>
                     <StyledTitle color={colors.white} size={18}>
                       {' '}
-                      {distributor?.name}
+                      {distributor?.business || distributor?.name}
                     </StyledTitle>
                   </StyledFlexRowView>
                   <Divider style={{ backgroundColor: colors.white }} />
@@ -353,13 +341,12 @@ export default class PaymentScreen extends PureComponent {
                       openOrderPlacedDialog: false,
                     },
                     () => {
-                      navigation.dispatch(
-                        CommonActions.reset({
+                      navigation.dispatch({
+                        ...CommonActions.reset({
                           index: 1,
-                          routes: [{ name: 'my-orders' }],
+                          routes: [{ name: 'home' }, { name: 'my-orders' }],
                         }),
-                      );
-                      navigation.navigate('my-orders');
+                      });
                     },
                   );
                 }}

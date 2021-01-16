@@ -1,5 +1,5 @@
-import firestore from '@react-native-firebase/firestore';
-import { put, call, takeEvery } from 'redux-saga/effects';
+import Storage from '@/utils/Storage';
+import { call, put, takeEvery } from 'redux-saga/effects';
 import { LOADER_CONSTANTS } from '../loaderService/LoaderConstants';
 import { GLOBALCARTANDCHECKOUTCONSTANTS } from './GlobalCartAndCheckoutConstants';
 
@@ -13,16 +13,12 @@ const failure = (type, error) => ({
   error,
 });
 
-const fetchMyCartItemsService = async ({ userId }) => {
+const fetchMyCartItemsService = async () => {
   try {
-    const docSnap = await firestore()
-      .collection('my-cart')
-      .doc(userId)
-      .collection('cart-items')
-      .get();
+    const cartItems = await Storage.getCartItems();
     return {
       response: {
-        data: docSnap.docs.map((doc) => doc.data()) || [],
+        data: JSON.parse(cartItems) ?? [],
         status: true,
         message: 'success',
       },
@@ -38,8 +34,8 @@ const fetchMyCartItemsService = async ({ userId }) => {
   }
 };
 
-function* fetchMyCartItemsSaga(action) {
-  const { response, error } = yield call(fetchMyCartItemsService, action.payload);
+function* fetchMyCartItemsSaga() {
+  const { response, error } = yield call(fetchMyCartItemsService);
   if (response?.status) {
     yield put(
       yield call(success, GLOBALCARTANDCHECKOUTCONSTANTS.FETCH_MY_CART_ITEMS_SUCCESS, response),

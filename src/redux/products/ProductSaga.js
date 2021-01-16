@@ -62,7 +62,6 @@ export function* fetchAllCategoriesWatcherSaga() {
 }
 
 const fetchProductsService = async ({ category }) => {
-  console.log(category);
   try {
     const response = await firestore()
       .collection('products')
@@ -200,13 +199,14 @@ const fetchAllDistributorsService = async () => {
       .get();
     const docSnapShot = response.docs;
     const allDistributors = docSnapShot.map((doc) => doc.data());
-    console.log(allDistributors);
     const optimizedData = !checkEmpty(allDistributors)
       ? allDistributors.map((item) => {
           return {
             name: item?.displayName,
             distributorId: item?.uid,
             fcm_token: item?.tokens,
+            city: item?.city,
+            business: item?.businessName,
           };
         })
       : [];

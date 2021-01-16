@@ -1,4 +1,5 @@
-import MapScreen from '@/components/HomeScreen/MapScreen';
+import PrivacyPolicyScreen from '@/components/LoginScreen/PrivacyPolicyScreen';
+import TOSScreen from '@/components/LoginScreen/TOSScreen';
 import OrderDetailsScreen from '@/components/OrderDetailsScreen';
 import CategoriesScreen from '@/containers/CategoriesScreen';
 import CheckoutScreen from '@/containers/CheckoutScreen';
@@ -21,7 +22,7 @@ import { colors, fonts } from '../styles';
 import APP_CONSTANTS from '../utils/appConstants/AppConstants';
 
 const {
-  IMAGES: { headerBackground },
+  IMAGES: { headerBackground, headerBackgroundHome },
 } = APP_CONSTANTS;
 
 const styles = StyleSheet.create({
@@ -55,7 +56,7 @@ const StackNavigationData = [
     path: 'home',
     component: HomeScreen,
     headerLeft: null,
-    headerBackground: { source: headerBackground },
+    headerBackground: { source: headerBackgroundHome },
     headerTitleStyle: {
       fontFamily: fonts.primaryRegular,
       color: colors.white,
@@ -207,18 +208,6 @@ const StackNavigationData = [
     },
   },
   {
-    name: 'Choose Location',
-    path: 'map-screen',
-    component: MapScreen,
-    headerLeft: HeaderLeftComponent,
-    headerBackground: { source: headerBackground },
-    headerTitleStyle: {
-      fontFamily: fonts.primaryRegular,
-      color: colors.white,
-      fontSize: 18,
-    },
-  },
-  {
     name: 'My Orders',
     path: 'my-orders',
     component: MyOrdersScreen,
@@ -234,6 +223,30 @@ const StackNavigationData = [
     name: 'Order Details',
     path: 'order-details',
     component: OrderDetailsScreen,
+    headerLeft: HeaderLeftComponent,
+    headerBackground: { source: headerBackground },
+    headerTitleStyle: {
+      fontFamily: fonts.primaryRegular,
+      color: colors.white,
+      fontSize: 18,
+    },
+  },
+  {
+    name: 'Terms of Service',
+    path: 'tos',
+    component: TOSScreen,
+    headerLeft: HeaderLeftComponent,
+    headerBackground: { source: headerBackground },
+    headerTitleStyle: {
+      fontFamily: fonts.primaryRegular,
+      color: colors.white,
+      fontSize: 18,
+    },
+  },
+  {
+    name: 'Privacy Policy',
+    path: 'privacy-policy',
+    component: PrivacyPolicyScreen,
     headerLeft: HeaderLeftComponent,
     headerBackground: { source: headerBackground },
     headerTitleStyle: {

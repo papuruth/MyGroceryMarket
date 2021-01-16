@@ -41,7 +41,7 @@ class DropDown extends React.Component {
 
   renderRow = (text, color) => (
     <TouchableHighlight underlayColor="lightgray">
-      <View style={{ paddingHorizontal: 20, paddingVertical: 10 }}>
+      <View style={{ paddingHorizontal: 10, paddingVertical: 10 }}>
         <Text style={{ color }}>{text}</Text>
       </View>
     </TouchableHighlight>
@@ -72,11 +72,12 @@ class DropDown extends React.Component {
             width: 0,
             height: 3,
           },
+          height: 'auto',
           shadowRadius: 5,
           shadowOpacity: 1.0,
         }}
         adjustFrame={(params) => {
-          Object.assign(params, { left: 30, right: 30 });
+          Object.assign(params, { left: 10, right: 10 });
           return params;
         }}
         renderRow={(text) => this.renderRow(text, color)}

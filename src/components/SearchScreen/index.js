@@ -17,7 +17,7 @@ import {
 } from './styles';
 
 export default class SearchScreen extends PureComponent {
-  constructor(props) {
+  constructor() {
     super();
     this.state = {
       searchText: '',
@@ -25,7 +25,10 @@ export default class SearchScreen extends PureComponent {
       loading: false,
     };
     this.initialState = this.state;
-    this.fetchSearchData(props);
+  }
+
+  componentDidMount() {
+    this.fetchSearchData(this.props);
   }
 
   fetchSearchData = (props) => {
@@ -124,7 +127,7 @@ export default class SearchScreen extends PureComponent {
           {currencyFormatter(item?.price)}
         </ListItem.Title>
         <ListItem.Subtitle style={{ color: colors.white, marginTop: 10 }}>
-          {item.name}
+          {item?.product}
         </ListItem.Subtitle>
       </ListItem.Content>
       <ListItem.Chevron />

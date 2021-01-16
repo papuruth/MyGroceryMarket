@@ -1,4 +1,4 @@
-rootProject.name = 'MyGroceryShop'
+rootProject.name = 'MyGroceryMarket'
 
 apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
 

@@ -7,14 +7,12 @@ import { Button } from '@/utils/reusableComponents';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Alert } from 'react-native';
+import Privacy from './Privacy';
 import {
   AuthFormFields,
   AuthFormView,
   AuthLogo,
   AuthLogoView,
-  AuthPrivacyContainer,
-  AuthPrivacyLink,
-  AuthPrivacyView,
   LoginFormContainer,
   ScrollContainer,
   StyledContainer,
@@ -57,9 +55,10 @@ export default class LoginScreen extends React.PureComponent {
 
   render() {
     const {
-      IMAGES: { background, parisoLogo },
+      IMAGES: { background, appLogo },
     } = APP_CONSTANTS;
     const { phone, parentHeight } = this.state;
+    const { navigation } = this.props;
     return (
       <StyledContainer
         onLayout={(event) => {
@@ -75,7 +74,7 @@ export default class LoginScreen extends React.PureComponent {
         >
           <LoginFormContainer>
             <AuthLogoView>
-              <AuthLogo source={parisoLogo} />
+              <AuthLogo source={appLogo} />
               <StyledTitle fontSize={24} color={colors.black}>
                 Get started
               </StyledTitle>
@@ -103,42 +102,7 @@ export default class LoginScreen extends React.PureComponent {
               />
             </AuthFormView>
           </LoginFormContainer>
-          <AuthPrivacyContainer>
-            <AuthPrivacyView>
-              <StyledTitle fontSize={14} color={colors.white}>
-                By continuing, you agree to our
-              </StyledTitle>
-              <AuthPrivacyLink>
-                <StyledTitle
-                  fontSize={14}
-                  color={colors.darkGray}
-                  accessibilityRole="link"
-                  decoration="underline"
-                  dataDetectorType="link"
-                >
-                  Terms of Service
-                </StyledTitle>
-                <StyledTitle
-                  fontSize={14}
-                  color={colors.darkGray}
-                  accessibilityRole="link"
-                  decoration="underline"
-                  dataDetectorType="link"
-                >
-                  Privacy Policy
-                </StyledTitle>
-                <StyledTitle
-                  fontSize={14}
-                  color={colors.darkGray}
-                  accessibilityRole="link"
-                  decoration="underline"
-                  dataDetectorType="link"
-                >
-                  Content Policy
-                </StyledTitle>
-              </AuthPrivacyLink>
-            </AuthPrivacyView>
-          </AuthPrivacyContainer>
+          <Privacy navigation={navigation} />
         </ScrollContainer>
       </StyledContainer>
     );

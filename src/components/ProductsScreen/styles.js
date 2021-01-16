@@ -5,6 +5,7 @@ import styled from 'styled-components/native';
 export const StyledContainer = styled(ImageBackground)`
   height: 100%;
   padding: 10px;
+  align-items: center;
   width: 100%;
 `;
 

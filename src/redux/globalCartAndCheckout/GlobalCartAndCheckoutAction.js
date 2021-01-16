@@ -1,6 +1,5 @@
 import { GLOBALCARTANDCHECKOUTCONSTANTS } from './GlobalCartAndCheckoutConstants';
 
-export const fetchMyCartItemsAction = (userId) => ({
+export const fetchMyCartItemsAction = () => ({
   type: GLOBALCARTANDCHECKOUTCONSTANTS.FETCH_MY_CART_ITEMS_REQUEST,
-  payload: { userId },
 });

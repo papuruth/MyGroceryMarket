@@ -15,12 +15,6 @@ const initialState = {
 
 export default function productReducer(state = initialState, action) {
   switch (action.type) {
-    case PRODUCTS_CONSTANTS.FETCH_CATEGORIES_REQUEST:
-      return {
-        ...state,
-        categories: [],
-        categoriesError: {},
-      };
     case PRODUCTS_CONSTANTS.FETCH_CATEGORIES_SUCCESS:
       return {
         ...state,
@@ -32,6 +26,11 @@ export default function productReducer(state = initialState, action) {
         categories: [],
         categoriesError: action.error,
       };
+    case PRODUCTS_CONSTANTS.FETCH_PRODUCTS_REQUEST:
+      return {
+        ...state,
+        products: [],
+      };
     case PRODUCTS_CONSTANTS.FETCH_PRODUCTS_SUCCESS:
       return {
         ...state,
@@ -41,6 +40,16 @@ export default function productReducer(state = initialState, action) {
       return {
         ...state,
         productsError: action.error,
+      };
+    case PRODUCTS_CONSTANTS.FETCH_PRODUCT_DETAILS_REQUEST:
+      if (!action?.payload?.action) {
+        return {
+          ...state,
+          productDetails: {},
+        };
+      }
+      return {
+        ...state,
       };
     case PRODUCTS_CONSTANTS.FETCH_PRODUCT_DETAILS_SUCCESS:
       return {

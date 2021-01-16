@@ -3,9 +3,8 @@ import { loaderStartAction } from '@/redux/loaderService/LoaderAction';
 import { fetchProductsAction } from '@/redux/products/ProductsAction';
 import { colors } from '@/styles';
 import APP_CONSTANTS from '@/utils/appConstants/AppConstants';
-import { checkEmpty, currencyFormatter } from '@/utils/commonFunctions';
+import { checkEmpty, currencyFormatter, handleCartLogic } from '@/utils/commonFunctions';
 import { Button } from '@/utils/reusableComponents';
-import firestore from '@react-native-firebase/firestore';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Alert } from 'react-native';
@@ -20,9 +19,8 @@ import {
 } from './styles';
 
 export default class ProductsScreen extends React.PureComponent {
-  constructor(props) {
-    super();
-    this.fetchProducts(props);
+  componentDidMount() {
+    this.fetchProducts(this.props);
   }
 
   fetchProducts = (props) => {
@@ -136,77 +134,26 @@ export default class ProductsScreen extends React.PureComponent {
 
   addToCartPlus = async (item) => {
     try {
-      const { user } = this.props;
-      const itemExist = 'cart' in item;
-      if (itemExist) {
-        const copyItem = { ...item?.cart };
-        if (copyItem.itemCount < +item?.total) {
-          copyItem.itemCount += 1;
-          const res = await firestore()
-            .collection('my-cart')
-            .doc(user?.uid)
-            .collection('cart-items')
-            .doc(copyItem?._id)
-            .update(copyItem);
-          if (!res) {
-            this.fetchProducts(this.props);
-          }
-        } else {
-          Alert.alert('Info', 'Sorry! Product quantity exhausted. Please try again later.');
-        }
+      const { myCartItems, dispatch } = this.props;
+      const res = await handleCartLogic(item, myCartItems, 'add');
+      if (res?.status) {
+        dispatch(fetchMyCartItemsAction());
       } else {
-        const docRef = firestore()
-          .collection('my-cart')
-          .doc(user?.uid)
-          .collection('cart-items')
-          .doc();
-        const newCartItem = {
-          productId: item?._id,
-          _id: docRef.id,
-          name: item?.product,
-          price: item?.price,
-          image: item?.image,
-          total: item?.total,
-          itemCount: 1,
-        };
-        const res = await docRef.set(newCartItem);
-        if (!res) {
-          this.fetchProducts(this.props);
-        }
+        throw Error(res?.message);
       }
     } catch (e) {
-      console.log(e?.message);
+      Alert.alert('Info', e?.message);
     }
   };
 
   removeFromCart = async (item) => {
     try {
-      const { user } = this.props;
-      const itemExist = 'cart' in item;
-      if (itemExist) {
-        const copyItem = { ...item?.cart };
-        if (copyItem.itemCount > 1) {
-          copyItem.itemCount -= 1;
-          const res = await firestore()
-            .collection('my-cart')
-            .doc(user?.uid)
-            .collection('cart-items')
-            .doc(copyItem?._id)
-            .update(copyItem);
-          if (!res) {
-            this.fetchProducts(this.props);
-          }
-        } else {
-          const res = await firestore()
-            .collection('my-cart')
-            .doc(user?.uid)
-            .collection('cart-items')
-            .doc(copyItem?._id)
-            .delete();
-          if (!res) {
-            this.fetchProducts(this.props);
-          }
-        }
+      const { myCartItems, dispatch } = this.props;
+      const res = await handleCartLogic(item, myCartItems, 'remove');
+      if (res?.status) {
+        dispatch(fetchMyCartItemsAction());
+      } else {
+        throw Error(res?.message);
       }
     } catch (e) {
       console.log(e?.message);
@@ -231,7 +178,9 @@ export default class ProductsScreen extends React.PureComponent {
             />
           </ProductsContainer>
         ) : (
-          <StyledTitle>No Products in the catgory {data?.category}</StyledTitle>
+          <StyledTitle style={{ textAlign: 'center' }}>
+            No Products in the catgory {data?.category}
+          </StyledTitle>
         )}
       </StyledContainer>
     );
@@ -239,7 +188,7 @@ export default class ProductsScreen extends React.PureComponent {
 }
 
 ProductsScreen.propTypes = {
-  user: PropTypes.oneOfType([PropTypes.object]).isRequired,
+  dispatch: PropTypes.func.isRequired,
   navigation: PropTypes.oneOfType([PropTypes.object]).isRequired,
   myCartItems: PropTypes.oneOfType([PropTypes.array]).isRequired,
   route: PropTypes.oneOfType([PropTypes.object]).isRequired,

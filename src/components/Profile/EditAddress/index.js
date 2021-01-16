@@ -4,12 +4,12 @@ import {
   getAllAddressAction,
   updateAddressById,
 } from '@/redux/user/userAction';
-import { colors } from '@/styles';
+import APP_CONSTANTS from '@/utils/appConstants/AppConstants';
 import { checkEmpty, equalityChecker } from '@/utils/commonFunctions';
-import PropTypes from 'prop-types';
 import firestore from '@react-native-firebase/firestore';
+import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { Alert, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { Alert, ImageBackground, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { Card, Dialog, Divider, IconButton, Portal, RadioButton } from 'react-native-paper';
 import { loaderStartAction } from '../../../redux/loaderService/LoaderAction';
 import { Button } from '../../../utils/reusableComponents';
@@ -18,7 +18,7 @@ import { RenderAddressEditForm } from './RenderAddressEditForm';
 import { RenderNewAddressForm } from './RenderNewAddressForm';
 
 export default class EditAddress extends PureComponent {
-  constructor(props) {
+  constructor() {
     super();
     this.state = {
       visible: false,
@@ -32,7 +32,10 @@ export default class EditAddress extends PureComponent {
       showNewAddressForm: false,
     };
     this.initialState = this.state;
-    this.fetchAddress(props);
+  }
+
+  componentDidMount() {
+    this.fetchAddress(this.props);
   }
 
   componentDidUpdate(prevProps) {
@@ -99,6 +102,7 @@ export default class EditAddress extends PureComponent {
     this.setState({
       visible: false,
       showNewAddressForm: false,
+      ...this.initialState,
     });
     this.forceUpdate();
   };
@@ -194,6 +198,9 @@ export default class EditAddress extends PureComponent {
   render() {
     const { addressData } = this.props;
     const {
+      IMAGES: { background },
+    } = APP_CONSTANTS;
+    const {
       visible,
       buildingName,
       city,
@@ -204,129 +211,125 @@ export default class EditAddress extends PureComponent {
       addressType,
     } = this.state;
     return (
-      <SafeAreaView style={styles.addressEditContainer}>
-        <ScrollView contentContainerStyle={styles.scrollView}>
-          <View style={styles.newAddressView}>
-            <Button
-              bordered
-              bgColor={colors.blue}
-              textColor={colors.black}
-              caption="Add new address"
-              onPress={this.addNewAddress}
-            />
-          </View>
-          <View style={styles.addressCardContainer}>
-            {!checkEmpty(addressData) ? (
-              addressData.map((item) => {
-                return (
-                  <Card style={styles.addressCard} key={item?._id}>
-                    <Card.Title
-                      titleStyle={styles.cardTitle}
-                      title={item?.addressType}
-                      left={(props) => (
-                        <RadioButton
-                          status={item?.isDefault ? 'checked' : 'unchecked'}
-                          {...props}
-                          onPress={() => this.makeAddressDefault(item)}
-                        />
-                      )}
-                      right={(props) => (
-                        <View style={styles.addressActionIcon}>
-                          <IconButton
+      <ImageBackground source={background} style={{ flex: 1 }}>
+        <SafeAreaView style={styles.addressEditContainer}>
+          <ScrollView contentContainerStyle={styles.scrollView}>
+            <View style={styles.newAddressView}>
+              <Button bordered caption="Add new address" onPress={this.addNewAddress} />
+            </View>
+            <View style={styles.addressCardContainer}>
+              {!checkEmpty(addressData) ? (
+                addressData.map((item) => {
+                  return (
+                    <Card style={styles.addressCard} key={item?._id}>
+                      <Card.Title
+                        titleStyle={styles.cardTitle}
+                        title={item?.addressType}
+                        left={(props) => (
+                          <RadioButton
+                            status={item?.isDefault ? 'checked' : 'unchecked'}
                             {...props}
-                            icon="delete"
-                            onPress={() => this.deleteAddress(item)}
-                            color="#000"
+                            onPress={() => this.makeAddressDefault(item)}
                           />
-                          <IconButton
-                            {...props}
-                            color="#000"
-                            icon="square-edit-outline"
-                            onPress={() => this.editAddress(item)}
-                          />
+                        )}
+                        right={(props) => (
+                          <View style={styles.addressActionIcon}>
+                            <IconButton
+                              {...props}
+                              icon="delete"
+                              onPress={() => this.deleteAddress(item)}
+                              color="#ff0000"
+                            />
+                            <IconButton
+                              {...props}
+                              color="#fff"
+                              icon="square-edit-outline"
+                              onPress={() => this.editAddress(item)}
+                            />
+                          </View>
+                        )}
+                      />
+                      <Divider style={styles.dividerStyle} />
+                      <Card.Content style={styles.cardContent}>
+                        <View style={styles.addressInfo}>
+                          <Text style={styles.label}>Building Name:</Text>
+                          <Text style={styles.textContent}>{item?.buildingName || 'N/A'}</Text>
                         </View>
-                      )}
+                        <View style={styles.addressInfo}>
+                          <Text style={styles.label}>City:</Text>
+                          <Text style={styles.textContent}>{item?.city || 'N/A'}</Text>
+                        </View>
+                        <View style={styles.addressInfo}>
+                          <Text style={styles.label}>Postal Code:</Text>
+                          <Text style={styles.textContent}>{item?.postalCode || 'N/A'}</Text>
+                        </View>
+                        <View style={styles.addressInfo}>
+                          <Text style={styles.label}>State:</Text>
+                          <Text style={styles.textContent}>{item?.state || 'N/A'}</Text>
+                        </View>
+                        <View style={styles.addressInfo}>
+                          <Text style={styles.label}>Street:</Text>
+                          <Text style={styles.textContent}>{item?.street || 'N/A'}</Text>
+                        </View>
+                      </Card.Content>
+                    </Card>
+                  );
+                })
+              ) : (
+                <View style={styles.editAddressNoAddress}>
+                  <Text style={styles.noAddressText}>No Address Found</Text>
+                  <Text style={styles.noAddressText2}>Please add one.</Text>
+                </View>
+              )}
+            </View>
+          </ScrollView>
+          <Portal>
+            <Dialog visible={visible || showNewAddressForm} dismissable={false}>
+              <Dialog.Title>{visible ? 'Edit Address' : 'Add New Address'}</Dialog.Title>
+              <ScrollView style={{ width: '100%', height: 'auto' }}>
+                <Dialog.Content>
+                  {visible ? (
+                    <RenderAddressEditForm
+                      buildingName={buildingName}
+                      city={city}
+                      postalCode={postalCode}
+                      state={state}
+                      street={street}
+                      addressType={addressType}
+                      onChange={this.handleUserInput}
                     />
-                    <Divider style={styles.dividerStyle} />
-                    <Card.Content style={styles.cardContent}>
-                      <View style={styles.addressInfo}>
-                        <Text style={styles.label}>Building Name:</Text>
-                        <Text style={styles.textContent}>{item?.buildingName || 'N/A'}</Text>
-                      </View>
-                      <View style={styles.addressInfo}>
-                        <Text style={styles.label}>City:</Text>
-                        <Text style={styles.textContent}>{item?.city || 'N/A'}</Text>
-                      </View>
-                      <View style={styles.addressInfo}>
-                        <Text style={styles.label}>Postal Code:</Text>
-                        <Text style={styles.textContent}>{item?.postalCode || 'N/A'}</Text>
-                      </View>
-                      <View style={styles.addressInfo}>
-                        <Text style={styles.label}>State:</Text>
-                        <Text style={styles.textContent}>{item?.state || 'N/A'}</Text>
-                      </View>
-                      <View style={styles.addressInfo}>
-                        <Text style={styles.label}>Street:</Text>
-                        <Text style={styles.textContent}>{item?.street || 'N/A'}</Text>
-                      </View>
-                    </Card.Content>
-                  </Card>
-                );
-              })
-            ) : (
-              <View style={styles.editAddressNoAddress}>
-                <Text style={styles.noAddressText}>No Address Found</Text>
-                <Text style={styles.noAddressText2}>Please add one.</Text>
-              </View>
-            )}
-          </View>
-        </ScrollView>
-        <Portal>
-          <Dialog visible={visible || showNewAddressForm} dismissable={false}>
-            <Dialog.Title>{visible ? 'Edit Address' : 'Add New Address'}</Dialog.Title>
-            <ScrollView style={{ width: '100%', height: 'auto' }}>
-              <Dialog.Content>
-                {visible ? (
-                  <RenderAddressEditForm
-                    buildingName={buildingName}
-                    city={city}
-                    postalCode={postalCode}
-                    state={state}
-                    street={street}
-                    addressType={addressType}
-                    onChange={this.handleUserInput}
+                  ) : null}
+                  {showNewAddressForm ? (
+                    <RenderNewAddressForm
+                      buildingName={buildingName}
+                      city={city}
+                      postalCode={postalCode}
+                      state={state}
+                      street={street}
+                      addressType={addressType}
+                      onChange={this.handleUserInput}
+                    />
+                  ) : null}
+                </Dialog.Content>
+                <Dialog.Actions>
+                  <Button
+                    rounded
+                    style={styles.editProfileButton}
+                    onPress={this.hideDialog}
+                    caption="Cancel"
                   />
-                ) : null}
-                {showNewAddressForm ? (
-                  <RenderNewAddressForm
-                    buildingName={buildingName}
-                    city={city}
-                    postalCode={postalCode}
-                    state={state}
-                    street={street}
-                    addressType={addressType}
-                    onChange={this.handleUserInput}
+                  <Button
+                    rounded
+                    style={styles.editProfileButton}
+                    onPress={visible ? this.updateAddress : this.saveNewAddress}
+                    caption="Done"
                   />
-                ) : null}
-              </Dialog.Content>
-              <Dialog.Actions>
-                <Button
-                  rounded
-                  style={styles.editProfileButton}
-                  onPress={this.hideDialog}
-                  caption="Cancel"
-                />
-                <Button
-                  rounded
-                  style={styles.editProfileButton}
-                  onPress={visible ? this.updateAddress : this.saveNewAddress}
-                  caption="Done"
-                />
-              </Dialog.Actions>
-            </ScrollView>
-          </Dialog>
-        </Portal>
-      </SafeAreaView>
+                </Dialog.Actions>
+              </ScrollView>
+            </Dialog>
+          </Portal>
+        </SafeAreaView>
+      </ImageBackground>
     );
   }
 }

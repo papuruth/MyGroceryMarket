@@ -17,9 +17,16 @@ export const RenderBasicDetailsForm = ({
   setPhotos,
 }) => {
   const selectPhoto = async () => {
-    const res = await imageSelector();
-    if (res) {
-      setPhotos(res, 'rawImage');
+    try {
+      const res = await imageSelector();
+      if (res) {
+        setPhotos(res, 'rawImage');
+        return true;
+      }
+      return false;
+    } catch (e) {
+      console.log(e?.message);
+      return false;
     }
   };
   return (

@@ -99,7 +99,9 @@ export default function OrderDetailsFooter({ orderDetails }) {
             />
           </DistributorImage>
           <DistributorDetails>
-            <StyledTitle bold>{distributorDetails?.name}</StyledTitle>
+            <StyledTitle bold>
+              {distributorDetails?.business || distributorDetails?.name}
+            </StyledTitle>
             <StyledTitle>Order ID: {orderId}</StyledTitle>
           </DistributorDetails>
         </DistributorDetailsContainer>

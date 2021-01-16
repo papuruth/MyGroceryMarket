@@ -1,9 +1,8 @@
 import AsyncStorage from '@react-native-community/async-storage';
 
-const prefix = 'api_token:';
-
 const storageKeys = {
-  token: `${prefix}`,
+  token: 'accessToken',
+  cartItems: 'myCartItems',
 };
 
 export default {
@@ -30,9 +29,35 @@ export default {
       console.log('Error removing token', e);
     }
   },
+  addToCart: async (data) => {
+    try {
+      await AsyncStorage.setItem(storageKeys.cartItems, JSON.stringify(data));
+      return true;
+    } catch (e) {
+      console.log(e?.message);
+      return false;
+    }
+  },
+  getCartItems: async () => {
+    try {
+      return await AsyncStorage.getItem(storageKeys.cartItems);
+    } catch (e) {
+      console.log(e?.message);
+      return false;
+    }
+  },
+  clearCart: async () => {
+    try {
+      await AsyncStorage.removeItem(storageKeys.cartItems);
+      return true;
+    } catch (e) {
+      console.log(e?.message);
+      return false;
+    }
+  },
   clearStorage: async () => {
     try {
-      await AsyncStorage.clear();
+      await AsyncStorage.multiRemove(['root', 'accessToken']);
     } catch (e) {
       console.log('Error clearing storage');
     }

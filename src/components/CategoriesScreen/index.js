@@ -10,15 +10,14 @@ import { Avatar, ListItem } from 'react-native-elements';
 import { CategoriesContainer, StyledContainer, StyledFlatList, StyledTitle } from './styles';
 
 export default class CategoriesScreen extends React.PureComponent {
-  constructor(props) {
-    super();
-    this.fetchCategories(props);
+  componentDidMount() {
+    this.fetchCategories(this.props);
   }
 
   fetchCategories = (props) => {
-    const { dispatch, user } = props;
+    const { dispatch } = props;
     dispatch(loaderStartAction());
-    dispatch(fetchAllCategoriesAction(user?.uid));
+    dispatch(fetchAllCategoriesAction());
   };
 
   keyExtractor = (item, index) => index.toString();
@@ -39,8 +38,8 @@ export default class CategoriesScreen extends React.PureComponent {
         onPress={() => {}}
         linearGradientProps={{
           colors: [colors.primaryGradientStart, colors.primary],
-          start: { x: 1, y: 0 },
-          end: { x: 0.2, y: 0 },
+          start: { x: 0, y: 0 },
+          end: { x: 1, y: 1 },
         }}
         ViewComponent={LinearGradient}
       >

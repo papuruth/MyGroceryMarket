@@ -29,7 +29,7 @@ import {
 } from './styles';
 
 export default class CheckoutScreen extends PureComponent {
-  constructor(props) {
+  constructor() {
     super();
     const { TIME_SLOTS } = APP_CONSTANTS;
     this.state = {
@@ -38,7 +38,10 @@ export default class CheckoutScreen extends PureComponent {
       selectedSlots: new Map(),
       slots: TIME_SLOTS,
     };
-    this.fetchInitialData(props);
+  }
+
+  componentDidMount() {
+    this.fetchInitialData(this.props);
   }
 
   fetchInitialData = (props) => {
@@ -51,6 +54,16 @@ export default class CheckoutScreen extends PureComponent {
     this.setState({
       selectedDistributorIndex: index,
     });
+  };
+
+  onWeekChanged = () => {
+    this.setState(
+      {
+        selectedSlots: new Map(),
+        selectedDate: moment(),
+      },
+      () => this.forceUpdate(),
+    );
   };
 
   handleSelectedSlots = (data) => {
@@ -71,7 +84,10 @@ export default class CheckoutScreen extends PureComponent {
       ? addressData.filter((item) => item.isDefault)[0]
       : {};
     const deliveryDate = selectedDate.format('ddd, D MMM, ').concat(selectedSlots.get('slots'));
-    const distributor = allDistributors[selectedDistributorIndex];
+    const filteredDistributor = allDistributors.filter(
+      (item) => item?.city === deliveryAddress?.city,
+    );
+    const distributor = filteredDistributor[selectedDistributorIndex];
     if (
       !checkEmpty(myCartItems) &&
       !checkEmpty(deliveryAddress) &&
@@ -99,11 +115,15 @@ export default class CheckoutScreen extends PureComponent {
   };
 
   getMaxDate = () => {
-    return new Date(new Date().setDate(7 - new Date().getDay()));
+    return moment().set({ date: moment().date() + 7 });
   };
 
   datesBlacklist = (date) => {
-    return date.isoWeekday() < new Date().getDay();
+    const isCurrentDate = date.date() === moment().date();
+    if (isCurrentDate) {
+      return false;
+    }
+    return date.unix() < moment().unix();
   };
 
   getSelectedDate = (data) => {
@@ -198,9 +218,6 @@ export default class CheckoutScreen extends PureComponent {
   render() {
     const { selectedDistributorIndex, selectedDate, slots } = this.state;
     const { addressData, route, allDistributors } = this.props;
-    const distributors = !checkEmpty(allDistributors)
-      ? allDistributors.map((item) => item?.name)
-      : [];
     const { params } = route || {};
     const { subTotal } = params || {};
     const defaultAddress = !checkEmpty(addressData)
@@ -209,6 +226,13 @@ export default class CheckoutScreen extends PureComponent {
     const deliveryAddress = !checkEmpty(defaultAddress)
       ? `${defaultAddress?.buildingName},\n${defaultAddress?.street},\n${defaultAddress?.city}, ${defaultAddress?.state}.\n${defaultAddress?.postalCode}`
       : '';
+    const distributors =
+      !checkEmpty(allDistributors) && deliveryAddress
+        ? allDistributors
+            .filter((item) => item?.city === defaultAddress?.city)
+            .map((item) => item?.business)
+            .filter((item) => item)
+        : [];
     const {
       IMAGES: { background },
     } = APP_CONSTANTS;
@@ -308,6 +332,7 @@ export default class CheckoutScreen extends PureComponent {
                     minDate={new Date()}
                     maxDate={this.getMaxDate()}
                     onDateSelected={this.getSelectedDate}
+                    onWeekChanged={this.onWeekChanged}
                   />
                 </>
               )}

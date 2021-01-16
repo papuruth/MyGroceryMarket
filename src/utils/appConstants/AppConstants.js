@@ -4,6 +4,8 @@ import ENV from './Environment';
 const APP_CONSTANTS = {
   URLS: {
     sendNotification: `${ENV.API_HOST}/notification/send`,
+    tos: 'http://mygrocerymarket.in/termsofservice.html',
+    privacyPolicy: 'http://mygrocerymarket.in/privacypolicy.html',
   },
   APP_MESSAGES: {
     NOINTERNET: 'You are disconnected! Please connect to Internet',
@@ -14,7 +16,7 @@ const APP_CONSTANTS = {
     NODOCUMENTSMESSAGE: 'No Documents Found',
   },
   IMAGES: {
-    parisoLogo: require('../../assets/icons/pariso_trans_logo.png'),
+    appLogo: require('../../assets/images/logo_orange.png'),
     parisoCover: require('../../assets/images/cover_parsio.jpg'),
     iconDrawerHome: require('../../assets/images/drawer/home.png'),
     iconTabHome: require('../../assets/images/tabbar/home.png'),
@@ -28,6 +30,9 @@ const APP_CONSTANTS = {
     avatar: require('../../assets/images/RNS_nerd.png'),
     iconMenu: require('../../assets/images/drawer/menu.png'),
     background: require('../../assets/images/background.png'),
+    homeBG: require('../../assets/images/home_bg_1.jpeg'),
+    homeBG2: require('../../assets/images/home_bg_2.jpeg'),
+    headerBackgroundHome: require('../../assets/images/headerBar.jpg'),
     headerBackground: require('../../assets/images/topBarBg.png'),
     arrowBack: require('../../assets/images/icons/arrow-back.png'),
     loginIcon: require('../../assets/icons/loginIcon.jpeg'),
