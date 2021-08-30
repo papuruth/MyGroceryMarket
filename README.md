@@ -12,7 +12,7 @@ git clone https://github.com/papuruth/mygroceryshop.git
 cd mygroceryshop && yarn install
 ```
 
-#### 2. Open RNS in your android emmulator
+#### 2. Open app in your android emmulator
 
 Run this command to start the development server and to start your app on Android simulator:
 
