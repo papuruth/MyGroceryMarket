@@ -50,7 +50,7 @@
     "lodash": "^4.17.13",
     "lottie-react-native": "^3.5.0",
     "metro-config": "^0.59.0",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "moment-with-locales-es6": "^1.0.1",
     "prop-types": "^15.7.2",
     "pubnub-react": "^2.0.0",
